@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Caravansary.SDK">
+      <HintPath>..\..\Caravansary\Caravansary.SDK\bin\Debug\net5.0-windows\Caravansary.SDK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
