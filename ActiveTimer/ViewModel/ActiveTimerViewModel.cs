@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -34,7 +35,6 @@ namespace ActiveTimer.ViewModel
                 _artistModel = value;
                 OnPropertyChanged(nameof(Artist));
             }
-
         }
 
         private string _timeReason;
@@ -77,6 +77,14 @@ namespace ActiveTimer.ViewModel
                 }
                 OnPropertyChanged(nameof(ArtistTimeString));
             }
+        }
+
+        private Visibility _resetButtonVisible;
+
+        public Visibility ResetButtonVisible
+        {
+            get { return _resetButtonVisible; }
+            set { _resetButtonVisible = value; OnPropertyChanged(nameof(ResetButtonVisible)); }
         }
 
 
@@ -253,8 +261,26 @@ namespace ActiveTimer.ViewModel
 
             }
         }
+        private ICommand _resetButton;
+        public ICommand ResetButton
+        {
+            get
+            {
+                if (_resetButton == null)
+                    _resetButton = new RelayCommand(
+                       (object o) =>
+                       {
+                           Artist.ActiveTime = TimeSpan.FromSeconds(0);
+                       },
+                       (object o) =>
+                       {
+                           return true;
+                       });
 
+                return _resetButton;
 
+            }
+        }
         #endregion
 
 
@@ -272,8 +298,22 @@ namespace ActiveTimer.ViewModel
 
 
             _host.HookWindowSwitchEvent(WindowSwitched);
+
+            ActiveTimer.OnMinViewEnteredEvent += OnMinViewEntered;
+            ActiveTimer.OnFullViewEnteredEvent += OnFullViewEntered;
         }
 
+
+        private void OnMinViewEntered()
+        {
+            ResetButtonVisible = Visibility.Collapsed;
+        }
+
+        private void OnFullViewEntered()
+        {
+            ResetButtonVisible = Visibility.Visible;
+
+        }
 
         private string lastWindow;
         private void WindowSwitched(WindowSwitchedArgs e)

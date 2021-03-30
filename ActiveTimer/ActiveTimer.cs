@@ -53,6 +53,9 @@ namespace ActiveTimer
 
 
 
+        public static Action OnMinViewEnteredEvent;
+        public static Action OnFullViewEnteredEvent;
+
 
 
         private IModuleController _host;
@@ -85,15 +88,24 @@ namespace ActiveTimer
 
 
         }
-
-        public void OnMinViewEntered()
+        public void OnInteractableEntered()
         {
 
         }
 
-        public void OnFullViewEntered()
+        public void OnInteractableExited()
         {
 
+        }
+
+        public void OnMinViewEntered()
+        {
+            OnMinViewEnteredEvent?.Invoke();
+        }
+
+        public void OnFullViewEntered()
+        {
+            OnFullViewEnteredEvent?.Invoke();
         }
 
         public ModulePosition GetModulePosition()
@@ -115,5 +127,7 @@ namespace ActiveTimer
         {
             return ModuleName;
         }
+
+        
     }
 }

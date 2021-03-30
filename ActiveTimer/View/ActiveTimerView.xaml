@@ -12,13 +12,12 @@
     <!--<UserControl.DataContext>
         <vm:ActiveTimerViewModel />
     </UserControl.DataContext>-->
-    <Grid>
+    <StackPanel Orientation="Horizontal">
         <Label Name="label3" Content="{Binding ArtistTimeString ,Mode=OneWay, FallbackValue='00:00:00'}"  FontWeight="Bold" MinWidth="200" FontSize="13" Margin="0,2,0,0" MinHeight="20" MaxHeight="20" Padding="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" >
             <Label.InputBindings>
                 <MouseBinding Command="{Binding ActiveTimeClicked}" MouseAction="LeftClick" />
             </Label.InputBindings>
-
-
         </Label>
-    </Grid>
+        <Button Content="Reset" Command="{Binding ResetButton}" Visibility="{Binding ResetButtonVisible}"/>
+    </StackPanel>
 </UserControl>

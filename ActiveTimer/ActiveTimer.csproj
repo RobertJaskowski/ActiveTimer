@@ -6,6 +6,11 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Caravansary.SDK">
       <HintPath>..\..\Caravansary\Caravansary.SDK\bin\Debug\net5.0-windows\Caravansary.SDK.dll</HintPath>
