@@ -105,6 +105,8 @@ namespace ActiveTimer.ViewModel
                            Artist.ActiveTime += TimeSpan.FromSeconds(1);
 
                            ArtistTimeString = Artist.ActiveTime.ToString();
+
+                           _host.OnEventTriggered(_core.ModuleName, "TimeUpdate", Artist.ActiveTime);
                        },
                        (object o) =>
                        {
@@ -286,11 +288,13 @@ namespace ActiveTimer.ViewModel
 
 
         private IModuleController _host;
+        private ICoreModule _core;
 
 
         public ActiveTimerViewModel(IModuleController host, ICoreModule activeTimer)
         {
             _host = host;
+            _core = activeTimer;
 
             _artistModel = new ArtistModel(TimeSpan.FromSeconds(0));
 
