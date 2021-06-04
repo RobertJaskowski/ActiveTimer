@@ -1,31 +1,29 @@
-﻿<UserControl x:Class="ActiveTimer.View.ActiveTimerSettingsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:ActiveTimer.View"
-             xmlns:c="clr-namespace:ActiveTimer"
-             mc:Ignorable="d" 
-             >
-
+﻿<UserControl
+    x:Class="ActiveTimer.View.ActiveTimerSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:ActiveTimer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ActiveTimer.View"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
 
     <UserControl.Resources>
-        <c:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-
+        <c:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
         <Style x:Key="SettingsList" TargetType="StackPanel">
             <Style.Resources>
 
-                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource BaseTextBlockStyle}">
-                    <Setter Property="Width" Value="300"/>
-                    <Setter Property="TextAlignment" Value="Center"/>
-                    <!--<Setter Property="Foreground" Value="{StaticResource DefaultForeground}"/>-->
-                    <Setter Property="FontSize" Value="13"/>
-                    <Setter Property="FontFamily" Value="Verdana"/>
+                <Style BasedOn="{StaticResource BaseTextBlockStyle}" TargetType="{x:Type TextBlock}">
+                    <Setter Property="Width" Value="300" />
+                    <Setter Property="TextAlignment" Value="Center" />
+                    <!--<Setter Property="Foreground" Value="{StaticResource DefaultForeground}" />-->
+                    <Setter Property="FontSize" Value="13" />
+                    <Setter Property="FontFamily" Value="Verdana" />
                 </Style>
-                <Style TargetType="{x:Type CheckBox}" >
-                    <Setter Property="Width" Value="100"/>
-                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Style TargetType="{x:Type CheckBox}">
+                    <Setter Property="Width" Value="100" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
                 </Style>
             </Style.Resources>
         </Style>
@@ -33,70 +31,98 @@
     <StackPanel>
         <!--<StackPanel.Background>
 
-            <SolidColorBrush Color="{StaticResource DefaultBgLighterDarkColor}"/>
+            <SolidColorBrush Color="{StaticResource DefaultBgLighterDarkColor}" />
 
             <SolidColorBrush Color="{DynamicResource DefaultBgLighterDarkColor}" />
         </StackPanel.Background>-->
 
+        <StackPanel Orientation="Horizontal">
+
+            <Label VerticalAlignment="Center" Content="Play sound?" />
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding PlaySoundCheckbox}" />
+            <Label VerticalAlignment="Center" Content="with volume:" />
+
+            <Slider
+                Width="200"
+                Margin="10,0,0,0"
+                VerticalAlignment="Center"
+                Value="{Binding PlaySoundVolumeSlider}" />
+        </StackPanel>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition  Height="Auto"/>
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition  Width="300" />
-                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="100" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" ToolTip="Blacklists timer runnning when user on specific windows processes name or browser address ex. &quot;chrome:url&quot;"  Text="Blacklist active" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <CheckBox Grid.Row="0" Grid.Column="1" x:Name="BlacklistEnableCheckbox"  IsChecked="{Binding CheckBoxBlacklistEnabled, Mode=TwoWay}" Margin="0,5"  />
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="Blacklist active"
+                ToolTip="Blacklists timer runnning when user on specific windows processes name or browser address ex. &quot;chrome:url&quot;" />
+            <CheckBox
+                x:Name="BlacklistEnableCheckbox"
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="0,5"
+                IsChecked="{Binding CheckBoxBlacklistEnabled, Mode=TwoWay}" />
             <!--<Button Content="&#xf067;" FontFamily="{StaticResource FontAwesome}" Width="25" Grid.Row="0" Grid.Column="1" Command="{Binding CreateNewBlacklistItem}" FontWeight="Normal" Margin="0,5"  >-->
-            <Button Content="Add"  Width="25" Grid.Row="0" Grid.Column="1" Command="{Binding CreateNewBlacklistItem}" FontWeight="Normal" Margin="0,5"  >
+            <Button
+                Grid.Row="0"
+                Grid.Column="1"
+                Width="25"
+                Margin="0,5"
+                Command="{Binding CreateNewBlacklistItem}"
+                Content="Add"
+                FontWeight="Normal">
                 <!--<Button.BorderBrush>
-                    <SolidColorBrush Color="{DynamicResource DefaultForegroundColor}"/>
+                    <SolidColorBrush Color="{DynamicResource DefaultForegroundColor}" />
                 </Button.BorderBrush>
                 <Button.Background>
-                    <SolidColorBrush Color="{DynamicResource DefaultBgLighterDarkColor}"/>
+                    <SolidColorBrush Color="{DynamicResource DefaultBgLighterDarkColor}" />
                 </Button.Background>-->
             </Button>
-
         </Grid>
 
-        <ListView Name="Blacklist" ItemsSource="{Binding BlacklistItems,Mode=TwoWay}" Background="{x:Null}" Visibility="{Binding ElementName=BlacklistEnableCheckbox, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+        <ListView
+            Name="Blacklist"
+            Background="{x:Null}"
+            ItemsSource="{Binding BlacklistItems, Mode=TwoWay}"
+            Visibility="{Binding ElementName=BlacklistEnableCheckbox, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
             <!--<ListView.BorderBrush>
-                <SolidColorBrush Color="{DynamicResource DefaultForegroundColor}"/>
+                <SolidColorBrush Color="{DynamicResource DefaultForegroundColor}" />
             </ListView.BorderBrush>-->
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBox Text="{Binding Rule, FallbackValue=empty}" Background="{x:Null}"/>
-                        <Button Content="&#xf068;" Command="{Binding  Path=DataContext.RemoveBlacklistItem, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding }" />
+                        <TextBox Background="{x:Null}" Text="{Binding Rule, FallbackValue=empty}" />
+                        <Button
+                            Command="{Binding Path=DataContext.RemoveBlacklistItem, RelativeSource={RelativeSource AncestorType=ListView}}"
+                            CommandParameter="{Binding}"
+                            Content="&#xf068;" />
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
-
-        <ItemsControl >
+        <ItemsControl>
             <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-
-                </ItemsPanelTemplate>
+                <ItemsPanelTemplate />
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.ItemTemplate>
-                <DataTemplate>
-
-                </DataTemplate>
+                <DataTemplate />
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
         <!--<StackPanel Visibility="{Binding ElementName=BlacklistEnableCheckbox, Path=IsChecked}"  Style="{StaticResource SettingsList}" Orientation="Horizontal">
 
-            <TextBlock   Text="safd"/>
-            <CheckBox  HorizontalAlignment="Center"/>
+            <TextBlock   Text="safd" />
+            <CheckBox  HorizontalAlignment="Center" />
         </StackPanel>-->
-
-
-
     </StackPanel>
 </UserControl>

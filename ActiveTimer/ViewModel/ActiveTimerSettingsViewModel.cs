@@ -8,20 +8,15 @@ using System.Windows.Input;
 
 namespace ActiveTimer.ViewModel
 {
-
-   
     public class ActiveTimerSettingsViewModel : BaseViewModel
     {
-
         #region Properties
-
 
         public bool CheckBoxBlacklistEnabled
         {
             get => Data.Settings.BlacklistEnabled;
             set
             {
-
                 Data.Settings.BlacklistEnabled = value;
 
                 OnPropertyChanged(nameof(CheckBoxBlacklistEnabled));
@@ -29,10 +24,35 @@ namespace ActiveTimer.ViewModel
             }
         }
 
+        public bool PlaySoundCheckbox
+        {
+            get { return Data.Settings.PlayChangeSound; }
+            set
+            {
+                Data.Settings.PlayChangeSound = value;
 
+                OnPropertyChanged(nameof(PlaySoundCheckbox)); SaveSettings();
+            }
+        }
 
+        public int PlaySoundVolumeSlider
+        {
+            get { return Data.Settings.PlayChangeVolume; }
+            set
+            {
+                if (value < 0)
+                    value = 0;
+                if (value > 100)
+                    value = 100;
+
+                Data.Settings.PlayChangeVolume = value;
+
+                OnPropertyChanged(nameof(PlaySoundVolumeSlider)); SaveSettings();
+            }
+        }
 
         private ObservableCollection<BlacklistItem> _blacklistItems;
+
         public ObservableCollection<BlacklistItem> BlacklistItems
         {
             get
@@ -40,7 +60,6 @@ namespace ActiveTimer.ViewModel
                 if (_blacklistItems == null)
                 {
                     _blacklistItems = new ObservableCollection<BlacklistItem>(Data.Settings.BlacklistItems);
-
                 }
 
                 return _blacklistItems;
@@ -53,12 +72,12 @@ namespace ActiveTimer.ViewModel
             }
         }
 
-        #endregion
-
+        #endregion Properties
 
         #region Commands
 
         private ICommand _createNewBlacklistItem;
+
         public ICommand CreateNewBlacklistItem
         {
             get
@@ -76,16 +95,14 @@ namespace ActiveTimer.ViewModel
                        (object o) =>
                        {
                            return true;
-
                        });
 
                 return _createNewBlacklistItem;
-
             }
         }
 
-
         private RelayCommand _removeBlacklistItem;
+
         public RelayCommand RemoveBlacklistItem
         {
             get
@@ -100,34 +117,27 @@ namespace ActiveTimer.ViewModel
 
                                Data.Settings.BlacklistItems.Remove(o as BlacklistItem);
                                SaveSettings();
-
                            }
-
                        },
                        (object o) =>
                        {
                            return true;
-
                        });
 
                 return _removeBlacklistItem;
-
             }
         }
 
-        #endregion
+        #endregion Commands
 
+        private IModuleController _host;
+        private ICoreModule coreModule;
 
-
-        IModuleController _host;
-        ICoreModule coreModule;
         public ActiveTimerSettingsViewModel(IModuleController host, ICoreModule activeTimer)
         {
             _host = host;
             coreModule = activeTimer;
-
         }
-
 
         public void SaveSettings()
         {

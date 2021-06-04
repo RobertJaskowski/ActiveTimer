@@ -11,6 +11,7 @@ namespace ActiveTimer
     {
         public bool BlacklistEnabled;
         public List<BlacklistItem> BlacklistItems;
-
+        public bool PlayChangeSound;
+        public int PlayChangeVolume;
     }
 }

@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,15 +17,13 @@ namespace ActiveTimer.ViewModel
 {
     public class ActiveTimerViewModel : ObservableObject
     {
-
-        #region Properties 
+        #region Properties
 
         private const int maxSecAfkTime = 2;
         private int currentCheckingAfkTime = 0;
 
-
-
         private ArtistModel _artistModel;
+
         public ArtistModel Artist
         {
             get
@@ -38,6 +38,7 @@ namespace ActiveTimer.ViewModel
         }
 
         private string _timeReason;
+
         public String TimeReason
         {
             get
@@ -52,6 +53,7 @@ namespace ActiveTimer.ViewModel
         }
 
         private string _artistTimeString;
+
         public String ArtistTimeString
         {
             get
@@ -65,12 +67,15 @@ namespace ActiveTimer.ViewModel
                     case ArtistState.ACTIVE:
                         _artistTimeString = value;
                         break;
+
                     case ArtistState.INACTIVE:
                         _artistTimeString = value;
                         break;
+
                     case ArtistState.PAUSED:
                         _artistTimeString = "|| " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");
                         break;
+
                     case ArtistState.RESUMED:
                         _artistTimeString = "|> " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");//TODO change to fontawesome, hangle font awesome in runtime because its not working
                         break;
@@ -87,12 +92,12 @@ namespace ActiveTimer.ViewModel
             set { _resetButtonVisible = value; OnPropertyChanged(nameof(ResetButtonVisible)); }
         }
 
-
-        #endregion
+        #endregion Properties
 
         #region Commands
 
         private ICommand _activeTimeUpdate;
+
         public ICommand ActiveTimeUpdate1Sec
         {
             get
@@ -114,11 +119,11 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _activeTimeUpdate;
-
             }
         }
 
         private ICommand _activeTimeClicked;
+
         public ICommand ActiveTimeClicked
         {
             get
@@ -137,7 +142,6 @@ namespace ActiveTimer.ViewModel
                            {
                                ArtistResume.Execute(null);
                            }
-
                        },
                        (object o) =>
                        {
@@ -145,11 +149,11 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _activeTimeClicked;
-
             }
         }
 
         private ICommand _artistActivate;
+
         public ICommand ArtistActivate
         {
             get
@@ -160,9 +164,13 @@ namespace ActiveTimer.ViewModel
                        {
                            Artist.ArtistState = ArtistState.ACTIVE;
 
-
                            //Color c = Color.FromArgb(255, 178, 255, 89);
                            // MainBarModule.SetBarColor(c);
+
+                           if (Data.Settings.PlayChangeSound)
+                           {
+                               PlaySound("Rise02.wav");
+                           }
 
                            _host.SendMessage("MainBar", "color|||" + "178|||255|||89");
                        },
@@ -172,11 +180,11 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _artistActivate;
-
             }
         }
 
         private ICommand _artistDeactivate;
+
         public ICommand ArtistDeactivate
         {
             get
@@ -185,16 +193,17 @@ namespace ActiveTimer.ViewModel
                     _artistDeactivate = new RelayCommand(
                        (object o) =>
                        {
-
                            Artist.ArtistState = ArtistState.INACTIVE;
                            ArtistTimeString = Artist.ActiveTime.ToString();
 
+                           if (Data.Settings.PlayChangeSound)
+                           {
+                               PlaySound("ring.wav");
+                           }
 
                            //Color c = Color.FromArgb(255, 221, 44, 0);
                            // MainBarModule.SetBarColor(c);
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
-
-
                        },
                        (object o) =>
                        {
@@ -202,11 +211,11 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _artistDeactivate;
-
             }
         }
 
         private ICommand _artistPause;
+
         public ICommand ArtistPause
         {
             get
@@ -215,14 +224,12 @@ namespace ActiveTimer.ViewModel
                     _artistPause = new RelayCommand(
                        (object o) =>
                        {
-
                            Artist.ArtistState = ArtistState.PAUSED;
                            ArtistTimeString = Artist.ActiveTime.ToString();
 
                            //Color c = Color.FromArgb(255, 221, 44, 0);
                            // MainBarModule.SetBarColor(c);
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
-
                        },
                        (object o) =>
                        {
@@ -230,11 +237,11 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _artistPause;
-
             }
         }
 
         private ICommand _artistResume;
+
         public ICommand ArtistResume
         {
             get
@@ -243,7 +250,6 @@ namespace ActiveTimer.ViewModel
                     _artistResume = new RelayCommand(
                        (object o) =>
                        {
-
                            Artist.ArtistState = ArtistState.RESUMED;
 
                            ArtistTimeString = Artist.ActiveTime.ToString();
@@ -260,10 +266,11 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _artistResume;
-
             }
         }
+
         private ICommand _resetButton;
+
         public ICommand ResetButton
         {
             get
@@ -280,16 +287,13 @@ namespace ActiveTimer.ViewModel
                        });
 
                 return _resetButton;
-
             }
         }
-        #endregion
 
-
+        #endregion Commands
 
         private IModuleController _host;
         private ICoreModule _core;
-
 
         public ActiveTimerViewModel(IModuleController host, ICoreModule activeTimer)
         {
@@ -300,13 +304,11 @@ namespace ActiveTimer.ViewModel
 
             CreateArtistStateTimers();
 
-
             _host.HookWindowSwitchEvent(WindowSwitched);
 
             ActiveTimer.OnMinViewEnteredEvent += OnMinViewEntered;
             ActiveTimer.OnFullViewEnteredEvent += OnFullViewEntered;
         }
-
 
         private void OnMinViewEntered()
         {
@@ -316,19 +318,27 @@ namespace ActiveTimer.ViewModel
         private void OnFullViewEntered()
         {
             ResetButtonVisible = Visibility.Visible;
+        }
 
+        private void PlaySound(string soundName)
+        {
+            if (!File.Exists("Modules/ActiveTimer/Resources/" + soundName)) return;
+
+            MediaPlayer player = new MediaPlayer();
+            player.Open(new Uri("Modules/ActiveTimer/Resources/" + soundName, UriKind.Relative));
+            player.Volume = Data.Settings.PlayChangeVolume / 100.0f;
+            player.Play();
         }
 
         private string lastWindow;
+
         private void WindowSwitched(WindowSwitchedArgs e)
         {
             string tit = e.Title.ToLower().Trim();
 
-
             if (TimeReason != null)
                 if (TimeReason.ToLower().Contains("user"))
                     return;
-
 
             Debug.WriteLine("window switched callback " + tit);
 
@@ -351,10 +361,8 @@ namespace ActiveTimer.ViewModel
                 lastWindow = tit;
             }
 
-
             if (!Data.Settings.BlacklistEnabled) return;
             if (!(Data.Settings.BlacklistItems.Count > 0)) return;
-
 
             List<BlacklistItem> chrome = new List<BlacklistItem>();
             List<BlacklistItem> windows = new List<BlacklistItem>();
@@ -378,7 +386,6 @@ namespace ActiveTimer.ViewModel
                 }
             }
 
-
             foreach (var item in windows)
             {
                 if (tit.Contains(item.Rule.ToLower()))
@@ -390,21 +397,15 @@ namespace ActiveTimer.ViewModel
                 }
             }
 
-
             if (chrome.Count > 0)
             {
-
                 foreach (var item in chrome)
                 {
-
-
-
                     SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
                     if (tit.Contains(settingsTabUrl.ToLower()))
                     {
                         TimeReason = settingsTabUrl;
                         ArtistPause.Execute(null);
-
 
                         Debug.WriteLine(TimeReason);
 
@@ -417,14 +418,11 @@ namespace ActiveTimer.ViewModel
                 //{
                 //    if (ActiveTabUrl == null) break;
 
-
-
                 //    WindowsWindowApi.SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
                 //    if (ActiveTabUrl.Contains(settingsTabUrl.ToLower()))
                 //    {
                 //        TimeReason = settingsTabUrl;
                 //        ArtistPause.Execute(null);
-
 
                 //        Debug.WriteLine(TimeReason);
 
@@ -438,10 +436,8 @@ namespace ActiveTimer.ViewModel
                 if (TimeReason != null)
                     if (!TimeReason.ToLower().Contains("user"))
                     {
-
                         ArtistResume.Execute(null);
                     }
-
         }
 
         public static bool IsChrome(string title)
@@ -456,12 +452,11 @@ namespace ActiveTimer.ViewModel
             SplitProcessAndParameter(title, out string process, out string param);
             return !string.IsNullOrEmpty(param);
         }
+
         public static void SplitProcessAndParameter(string stringToSplit, out string process, out string parameter)
         {
             if (stringToSplit.Contains(':'))
             {
-
-
                 List<string> spl = stringToSplit.Split(':').ToList<string>();
                 if (spl[1].Length > 0)
                 {
@@ -473,17 +468,13 @@ namespace ActiveTimer.ViewModel
                     process = spl[0];
                     parameter = "";
                 }
-
             }
             else
             {
                 process = stringToSplit;
                 parameter = "";
             }
-
-
         }
-
 
         public static bool IsChromeTab(string title, out string url)
         {
@@ -496,21 +487,16 @@ namespace ActiveTimer.ViewModel
             return !string.IsNullOrEmpty(url);
         }
 
-
         private void CreateArtistStateTimers()
         {
-
             DispatcherTimer timerArtistStateCheck = new DispatcherTimer();
             timerArtistStateCheck.Interval = TimeSpan.FromSeconds(1);
             timerArtistStateCheck.Tick += new EventHandler(TimerTick);
             timerArtistStateCheck.Start();
-
         }
+
         private void TimerTick(object sender, EventArgs e)
         {
-
-
-
             CheckStateChanges();
 
             switch (Artist.ArtistState)
@@ -518,22 +504,22 @@ namespace ActiveTimer.ViewModel
                 case ArtistState.ACTIVE:
                     OnArtistStateActiveTick();
                     break;
+
                 case ArtistState.INACTIVE:
                     OnArtistStateInactiveTick();
                     break;
+
                 case ArtistState.PAUSED:
                     break;
+
                 case ArtistState.RESUMED:
                     OnArtistStateResumeTick();
                     break;
             }
         }
 
-
         private void CheckStateChanges()
         {
-
-
             if (Artist.ArtistState == ArtistState.PAUSED)
             {
                 return;
@@ -544,7 +530,6 @@ namespace ActiveTimer.ViewModel
 
                 if (r)
                 {
-
                     ArtistActivate.Execute(null);
                 }
             }
@@ -563,18 +548,15 @@ namespace ActiveTimer.ViewModel
                     {
                         currentCheckingAfkTime = 0;
                         ArtistDeactivate.Execute(null);
-
                     }
                 }
             }
         }
 
+        private uint lastActive = 0;
 
-
-        uint lastActive = 0;
         private bool CheckIfAnyInputReceived()
         {
-
             LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
             lastInputInfo.cbSize = (UInt32)Marshal.SizeOf(lastInputInfo);
             lastInputInfo.dwTime = 0;
@@ -588,11 +570,10 @@ namespace ActiveTimer.ViewModel
                 }
             }
 
-
             return false;
         }
 
-        float topPercentFilled = 0;
+        private float topPercentFilled = 0;
         public int timeSecToFillTopBar = 0;//todo
 
         private void OnArtistStateActiveTick()
@@ -604,7 +585,6 @@ namespace ActiveTimer.ViewModel
             if (timeSecToFillTopBar == 0)
                 return;
 
-
             float rest = (float)(Artist.ActiveTime.TotalSeconds % (timeSecToFillTopBar));
             topPercentFilled = Utils.ToProcentage(rest, 0, timeSecToFillTopBar);
 
@@ -613,7 +593,6 @@ namespace ActiveTimer.ViewModel
 
         private void OnArtistStateInactiveTick()
         {
-
         }
 
         private void OnArtistStateResumeTick()
@@ -625,13 +604,9 @@ namespace ActiveTimer.ViewModel
             TimeReason = "";
         }
 
-
         public void Stop()
         {
             _host.UnHookWindowSwitchEvent(WindowSwitched);
-
-
-
         }
     }
 }
