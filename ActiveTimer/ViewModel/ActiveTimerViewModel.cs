@@ -173,6 +173,7 @@ namespace ActiveTimer.ViewModel
                            }
 
                            _host.SendMessage("MainBar", "color|||" + "178|||255|||89");
+                           _host.SendMessage("ActiveTimer", "IsActive");
                        },
                        (object o) =>
                        {
@@ -204,6 +205,7 @@ namespace ActiveTimer.ViewModel
                            //Color c = Color.FromArgb(255, 221, 44, 0);
                            // MainBarModule.SetBarColor(c);
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
+                           _host.SendMessage("ActiveTimer", "IsNotActive");
                        },
                        (object o) =>
                        {
@@ -230,6 +232,8 @@ namespace ActiveTimer.ViewModel
                            //Color c = Color.FromArgb(255, 221, 44, 0);
                            // MainBarModule.SetBarColor(c);
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
+
+                           _host.SendMessage("ActiveTimer", "IsNotActive");
                        },
                        (object o) =>
                        {
@@ -257,6 +261,8 @@ namespace ActiveTimer.ViewModel
                            //Color c = Color.FromArgb(255, 221, 44, 0);
                            // MainBarModule.SetBarColor(c);
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
+
+                           _host.SendMessage("ActiveTimer", "IsActive");
 
                            TimeReason = "";
                        },
