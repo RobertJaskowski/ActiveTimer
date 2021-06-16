@@ -26,6 +26,27 @@ public class WinApi
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern IntPtr GetModuleHandle(string lpModuleName);
 
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    static extern int GetWindowTextLength(IntPtr hWnd);
+
+
+
+    public static StringBuilder GetWindowTitle()
+    {
+        var i = GetForegroundWindow();
+        int length = GetWindowTextLength(i);
+        StringBuilder sb = new StringBuilder(length + 1);
+        GetWindowText(i, sb, sb.Capacity);
+        return sb;
+
+    }
 
 
     [DllImport("user32.dll")]
@@ -48,34 +69,7 @@ public class WinApi
 
 
 
-    //[DllImport("user32.dll")]
-    //[return: MarshalAs(UnmanagedType.Bool)]
-    //public static extern bool PeekMessage(out NativeMessage lpMsg, IntPtr hWnd, uint wMsgFilterMin,
-    //   uint wMsgFilterMax, uint wRemoveMsg);
 
-
-    //[StructLayout(LayoutKind.Sequential)]
-    //public struct NativeMessage
-    //{
-    //    public IntPtr handle;
-    //    public uint msg;
-    //    public IntPtr wParam;
-    //    public IntPtr lParam;
-    //    public uint time;
-    //    public Point p;
-    //}
-
-
-    //const UInt32 SWP_NOSIZE = 0x0001;
-    //const UInt32 SWP_NOMOVE = 0x0002;
-
-    //static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
-
-    //public static void SendWpfWindowBack(Window window)
-    //{
-    //    var hWnd = new WindowInteropHelper(window).Handle;
-    //    SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-    //}
 
     [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]
     private static extern bool NativeGetKeyboardState([Out] byte[] keyStates);

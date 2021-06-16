@@ -34,12 +34,7 @@ public class BlacklistItem : INotifyPropertyChanged
 
     protected void OnPropertyChanged(string propertyName)
     {
-        PropertyChangedEventHandler handler = PropertyChanged;
-
-        if (handler != null)
-        {
-            handler(this, new PropertyChangedEventArgs(propertyName));
-        }
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     #endregion

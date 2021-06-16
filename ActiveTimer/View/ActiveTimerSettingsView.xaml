@@ -13,8 +13,8 @@
 
         <Style x:Key="SettingsList" TargetType="StackPanel">
             <Style.Resources>
-
-                <Style BasedOn="{StaticResource BaseTextBlockStyle}" TargetType="{x:Type TextBlock}">
+                <!--BasedOn="{StaticResource BaseTextBlockStyle}"-->
+                <Style  TargetType="{x:Type TextBlock}">
                     <Setter Property="Width" Value="300" />
                     <Setter Property="TextAlignment" Value="Center" />
                     <!--<Setter Property="Foreground" Value="{StaticResource DefaultForeground}" />-->
@@ -99,11 +99,12 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBox Background="{x:Null}" Text="{Binding Rule, FallbackValue=empty}" />
+                        <TextBox Background="{x:Null}" 
+                                 Text="{Binding Rule, FallbackValue=empty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             Command="{Binding Path=DataContext.RemoveBlacklistItem, RelativeSource={RelativeSource AncestorType=ListView}}"
                             CommandParameter="{Binding}"
-                            Content="&#xf068;" />
+                            Content="Del" />
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

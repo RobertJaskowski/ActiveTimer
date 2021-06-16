@@ -8,7 +8,7 @@ namespace ActiveTimer
 {
     public static class Data
     {
-
+        public static Action OnSettingsChanged;
 
         private static ActiveTimerSettings _settings;
 

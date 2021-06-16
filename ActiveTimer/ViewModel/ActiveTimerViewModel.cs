@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -26,10 +27,7 @@ namespace ActiveTimer.ViewModel
 
         public ArtistModel Artist
         {
-            get
-            {
-                return _artistModel;
-            }
+            get => _artistModel;
             set
             {
                 _artistModel = value;
@@ -41,10 +39,7 @@ namespace ActiveTimer.ViewModel
 
         public String TimeReason
         {
-            get
-            {
-                return _timeReason;
-            }
+            get => _timeReason;
             set
             {
                 _timeReason = value;
@@ -77,7 +72,7 @@ namespace ActiveTimer.ViewModel
                         break;
 
                     case ArtistState.RESUMED:
-                        _artistTimeString = "|> " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");//TODO change to fontawesome, hangle font awesome in runtime because its not working
+                        _artistTimeString = "|> " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");
                         break;
                 }
                 OnPropertyChanged(nameof(ArtistTimeString));
@@ -132,11 +127,10 @@ namespace ActiveTimer.ViewModel
                     _activeTimeClicked = new RelayCommand(
                        (object o) =>
                        {
-                           TimeReason = "user";
 
                            if (Artist.ArtistState == ArtistState.ACTIVE || Artist.ArtistState == ArtistState.INACTIVE)
                            {
-                               ArtistPause.Execute(null);
+                               ArtistPause.Execute("user");
                            }
                            else if (Artist.ArtistState == ArtistState.PAUSED)
                            {
@@ -164,8 +158,6 @@ namespace ActiveTimer.ViewModel
                        {
                            Artist.ArtistState = ArtistState.ACTIVE;
 
-                           //Color c = Color.FromArgb(255, 178, 255, 89);
-                           // MainBarModule.SetBarColor(c);
 
                            if (Data.Settings.PlayChangeSound)
                            {
@@ -195,6 +187,8 @@ namespace ActiveTimer.ViewModel
                        (object o) =>
                        {
                            Artist.ArtistState = ArtistState.INACTIVE;
+
+
                            ArtistTimeString = Artist.ActiveTime.ToString();
 
                            if (Data.Settings.PlayChangeSound)
@@ -227,10 +221,13 @@ namespace ActiveTimer.ViewModel
                        (object o) =>
                        {
                            Artist.ArtistState = ArtistState.PAUSED;
+
+                           if (o is string)
+                               TimeReason = (string)o;
+
                            ArtistTimeString = Artist.ActiveTime.ToString();
 
-                           //Color c = Color.FromArgb(255, 221, 44, 0);
-                           // MainBarModule.SetBarColor(c);
+
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
 
                            _host.SendMessage("ActiveTimer", "IsNotActive");
@@ -255,16 +252,15 @@ namespace ActiveTimer.ViewModel
                        (object o) =>
                        {
                            Artist.ArtistState = ArtistState.RESUMED;
+                           if (o is string)
+                               TimeReason = "";
 
                            ArtistTimeString = Artist.ActiveTime.ToString();
 
-                           //Color c = Color.FromArgb(255, 221, 44, 0);
-                           // MainBarModule.SetBarColor(c);
                            _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
 
                            _host.SendMessage("ActiveTimer", "IsActive");
 
-                           TimeReason = "";
                        },
                        (object o) =>
                        {
@@ -314,6 +310,13 @@ namespace ActiveTimer.ViewModel
 
             ActiveTimer.OnMinViewEnteredEvent += OnMinViewEntered;
             ActiveTimer.OnFullViewEnteredEvent += OnFullViewEntered;
+
+            Data.OnSettingsChanged += OnSettingsChanged;
+        }
+
+        private void OnSettingsChanged()
+        {
+            splitBlacklist.BlacklistItemsRequireRefreshing = true;
         }
 
         private void OnMinViewEntered()
@@ -336,124 +339,195 @@ namespace ActiveTimer.ViewModel
             player.Play();
         }
 
-        private string lastWindow;
 
         private void WindowSwitched(WindowSwitchedArgs e)
         {
-            string tit = e.Title.ToLower().Trim();
+            string title = e.Title.ToLower().Trim();
+            Debug.WriteLine("window switched callback " + title);
 
-            if (TimeReason != null)
-                if (TimeReason.ToLower().Contains("user"))
-                    return;
+            OnNewTitleFound(title);
+            return;
 
-            Debug.WriteLine("window switched callback " + tit);
 
-            if (tit.Contains("visual") || tit.Contains("Caravansary"))
+
+
+
+        }
+
+        private BlacklistItem IsTitleBlackListed(string title)
+        {
+            BlacklistItem ret = IsTitleBlacklistedFromWindowsBlacklistedTitles(title);
+            if (ret != null)
+                return ret;
+
+            ret = IsTitleBlacklistedFromChromeBlacklistedTitles(title);
+            if (ret != null)
             {
-                Debug.WriteLine("is in design");
-
-                return;
+                return ret;
             }
 
-            if (lastWindow == null)
-                lastWindow = tit;
-            else
+            return ret;
+        }
+
+        private BlacklistItem IsTitleBlacklistedFromChromeBlacklistedTitles(string title)
+        {
+
+            //foreach (BlacklistItem item in chrome)
+            //{
+            //    SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
+            //    if (title.Contains(settingsTabUrl.ToLower()))
+            //    {
+            //        ArtistPause.Execute(settingsTabUrl);
+
+
+            //        return;
+            //    }
+            //}
+
+
+            return splitBlacklist.chrome.Find((chromeTitleBlocked) =>
             {
-                if (lastWindow.Equals(tit))
+                SplitProcessAndParameter(chromeTitleBlocked.Rule, out string process, out string settingsTabUrl);
+                if (title.Contains(settingsTabUrl.ToLowerInvariant()))
+                    return true;
+                return false;
+            });
+        }
+
+        private BlacklistItem IsTitleBlacklistedFromWindowsBlacklistedTitles(string title)
+        {
+
+            //foreach (BlacklistItem item in windows)
+            //{
+            //    if (title.Contains(item.Rule.ToLower(CultureInfo.InvariantCulture)))
+            //    {
+            //        ArtistPause.Execute(item.Rule);
+            //        Debug.WriteLine(TimeReason);
+            //        return;
+            //    }
+            //}
+
+            return splitBlacklist.windows.Find((windowTitleBlocked) => title.Contains(windowTitleBlocked.Rule.ToLowerInvariant()));
+        }
+
+
+        private SplitBlacklist splitBlacklist = new();
+
+        private class SplitBlacklist
+        {
+            public bool BlacklistItemsRequireRefreshing = true;
+
+
+            private List<BlacklistItem> _chrome;
+
+            public List<BlacklistItem> chrome
+            {
+                get
                 {
-                    Debug.WriteLine("is same window");
-                    return;
+                    AssignBlacklistedItems();
+                    return _chrome;
                 }
-                lastWindow = tit;
             }
 
-            if (!Data.Settings.BlacklistEnabled) return;
-            if (!(Data.Settings.BlacklistItems.Count > 0)) return;
-
-            List<BlacklistItem> chrome = new List<BlacklistItem>();
-            List<BlacklistItem> windows = new List<BlacklistItem>();
-
-            foreach (var item in Data.Settings.BlacklistItems)
+            private List<BlacklistItem> _windows;
+            public List<BlacklistItem> windows
             {
-                if (IsChrome(item.Rule))//called alot in debug
+                get
                 {
-                    if (IsChromeTab(item.Rule.ToLower(), out string settingsTabUrl))
+                    AssignBlacklistedItems();
+                    return _windows;
+                }
+            }
+
+            private void AssignBlacklistedItems()
+            {
+                if (!BlacklistItemsRequireRefreshing)
+                    return;
+                BlacklistItemsRequireRefreshing = false;
+
+                _chrome = new List<BlacklistItem>();
+                _windows = new List<BlacklistItem>();
+                foreach (var item in Data.Settings.BlacklistItems)
+                {
+                    if (IsTitleChrome(item.Rule))
                     {
-                        chrome.Add(item);
+                        if (IsChromeTab(item.Rule.ToLower(), out string settingsTabUrl))
+                        {
+                            chrome.Add(item);
+                        }
+                        else
+                        {
+                            windows.Add(item);
+                        }
                     }
                     else
                     {
                         windows.Add(item);
                     }
                 }
-                else
-                {
-                    windows.Add(item);
-                }
             }
+        }
 
-            foreach (var item in windows)
-            {
-                if (tit.Contains(item.Rule.ToLower()))
-                {
-                    TimeReason = item.Rule;
-                    ArtistPause.Execute(null);
-                    Debug.WriteLine(TimeReason);
-                    return;
-                }
-            }
+        public void OnNewTitleFound(string title)
+        {
+            if (IsTimerPausedByUser())
+                return;
 
-            if (chrome.Count > 0)
-            {
-                foreach (var item in chrome)
+            if (IsTitleExcludedFromWindowTitleCapture(title))
+                return;
+
+            if (IsSameProcessTitle(title))
+                return;
+
+            lastWindow = title;
+
+            if (Data.Settings.BlacklistEnabled)
+                if (Data.Settings.BlacklistItems.Count > 0)
                 {
-                    SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
-                    if (tit.Contains(settingsTabUrl.ToLower()))
+                    if (!IsTitleAllowed(title, out BlacklistItem bl))
                     {
-                        TimeReason = settingsTabUrl;
-                        ArtistPause.Execute(null);
-
+                        ArtistPause.Execute(bl.Rule);
                         Debug.WriteLine(TimeReason);
-
                         return;
                     }
                 }
-                //chrome tabs
-                //string ActiveTabUrl =  WindowsWindowApi.GetChromeActiveTabUrl();
-                //foreach (var item in chrome)
-                //{
-                //    if (ActiveTabUrl == null) break;
 
-                //    WindowsWindowApi.SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
-                //    if (ActiveTabUrl.Contains(settingsTabUrl.ToLower()))
-                //    {
-                //        TimeReason = settingsTabUrl;
-                //        ArtistPause.Execute(null);
 
-                //        Debug.WriteLine(TimeReason);
-
-                //        Debug.WriteLine("stopping");
-                //        return;
-                //    }
-                //}
-            }
 
             if (Artist.ArtistState != ArtistState.ACTIVE)
-                if (TimeReason != null)
-                    if (!TimeReason.ToLower().Contains("user"))
-                    {
-                        ArtistResume.Execute(null);
-                    }
+                if (IsTimerPausedByUser())
+                {
+                    ArtistResume.Execute(null);
+                }
         }
 
-        public static bool IsChrome(string title)
+        private bool IsCurrentActiveWindowAllowedWindow()
         {
-            return title.Contains("chrome");
+            string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
+
+            return IsTitleAllowed(title, out BlacklistItem bl);
+        }
+
+        public bool IsTitleAllowed(string title, out BlacklistItem blacklistItem)
+        {
+            blacklistItem = null;
+
+            if (IsTitleExcludedFromWindowTitleCapture(title)) return false;
+
+            BlacklistItem bl = IsTitleBlackListed(title);
+            if (bl != null)
+            {
+                blacklistItem = bl;
+                return false;
+            }
+
+            return true;
+
         }
 
         public static bool IsChromeTab(string title)
         {
-            if (!IsChrome(title)) return false;
+            if (!IsTitleChrome(title)) return false;
 
             SplitProcessAndParameter(title, out string process, out string param);
             return !string.IsNullOrEmpty(param);
@@ -484,7 +558,7 @@ namespace ActiveTimer.ViewModel
 
         public static bool IsChromeTab(string title, out string url)
         {
-            if (!IsChrome(title))
+            if (!IsTitleChrome(title))
             {
                 url = "";
                 return false;
@@ -503,6 +577,8 @@ namespace ActiveTimer.ViewModel
 
         private void TimerTick(object sender, EventArgs e)
         {
+
+
             CheckStateChanges();
 
             switch (Artist.ArtistState)
@@ -526,24 +602,27 @@ namespace ActiveTimer.ViewModel
 
         private void CheckStateChanges()
         {
+            inputReceivedThisTick = false;
+            CheckIfAnyInputReceived();
+
             if (Artist.ArtistState == ArtistState.PAUSED)
             {
+                if (!IsTimerPausedByUser() && inputReceivedThisTick && IsCurrentActiveWindowAllowedWindow())
+                    ArtistResume.Execute(null);
                 return;
             }
             else if (!Artist.ArtistActive)
             {
-                var r = CheckIfAnyInputReceived();
-
-                if (r)
+                if (inputReceivedThisTick)
                 {
                     ArtistActivate.Execute(null);
                 }
-            }
-            else//active
-            {
-                var lastInputState = CheckIfAnyInputReceived();
 
-                if (lastInputState)
+            }
+            else
+            {
+
+                if (inputReceivedThisTick)
                 {
                     currentCheckingAfkTime = 0;
                 }
@@ -559,6 +638,7 @@ namespace ActiveTimer.ViewModel
             }
         }
 
+        private bool inputReceivedThisTick = false;
         private uint lastActive = 0;
 
         private bool CheckIfAnyInputReceived()
@@ -572,6 +652,7 @@ namespace ActiveTimer.ViewModel
                 if (lastInputInfo.dwTime != lastActive)
                 {
                     lastActive = lastInputInfo.dwTime;
+                    inputReceivedThisTick = true;
                     return true;
                 }
             }
@@ -580,13 +661,12 @@ namespace ActiveTimer.ViewModel
         }
 
         private float topPercentFilled = 0;
-        public int timeSecToFillTopBar = 0;//todo
+        public int timeSecToFillTopBar = 0;
 
         private void OnArtistStateActiveTick()
         {
             ActiveTimeUpdate1Sec.Execute(null);
 
-            // MainBarModule.UpdateTopBar(Artist.ActiveTime.TotalSeconds);
 
             if (timeSecToFillTopBar == 0)
                 return;
@@ -605,7 +685,6 @@ namespace ActiveTimer.ViewModel
         {
             ActiveTimeUpdate1Sec.Execute(null);
 
-            // MainBarModule.UpdateTopBar(Artist.ActiveTime.TotalSeconds);
 
             TimeReason = "";
         }
@@ -613,6 +692,52 @@ namespace ActiveTimer.ViewModel
         public void Stop()
         {
             _host.UnHookWindowSwitchEvent(WindowSwitched);
+            Data.OnSettingsChanged -= OnSettingsChanged;
+        }
+
+        private bool IsTitleExcludedFromWindowTitleCapture(string title)
+        {
+            return IsTitleDesignTime(title) || IsTitleMainApplication(title) || IsTitleException(title);
+        }
+
+        private bool IsTitleDesignTime(string title)
+        {
+            return title.Contains("visual");
+        }
+
+        private bool IsTitleMainApplication(string title)
+        {
+            return title.Contains("caravansary") || title.Contains("caravaneer");
+        }
+
+        private bool IsTitleException(string title)
+        {
+            return title.Contains("task switching");
+        }
+
+
+        public static bool IsTitleChrome(string title)
+        {
+            return title.Contains("chrome");
+        }
+
+        private string lastWindow;
+        private bool IsSameProcessTitle(string title)
+        {
+            if (lastWindow == null)
+                return false;
+
+            if (lastWindow.Equals(title))
+                return true;
+            return false;
+        }
+
+        private bool IsTimerPausedByUser()
+        {
+            if (TimeReason != null)
+                if (TimeReason.ToLower().Contains("user"))
+                    return true;
+            return false;
         }
     }
 }

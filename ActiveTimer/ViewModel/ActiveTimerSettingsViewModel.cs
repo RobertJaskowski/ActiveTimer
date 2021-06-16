@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Caravansary.SDK;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +10,7 @@ using System.Windows.Input;
 
 namespace ActiveTimer.ViewModel
 {
-    public class ActiveTimerSettingsViewModel : BaseViewModel
+    public class ActiveTimerSettingsViewModel : PageModelBase
     {
         #region Properties
 
@@ -51,15 +53,15 @@ namespace ActiveTimer.ViewModel
             }
         }
 
-        private ObservableCollection<BlacklistItem> _blacklistItems;
+        private TrulyObservableCollection<BlacklistItem> _blacklistItems;
 
-        public ObservableCollection<BlacklistItem> BlacklistItems
+        public TrulyObservableCollection<BlacklistItem> BlacklistItems
         {
             get
             {
                 if (_blacklistItems == null)
                 {
-                    _blacklistItems = new ObservableCollection<BlacklistItem>(Data.Settings.BlacklistItems);
+                    _blacklistItems = new(Data.Settings.BlacklistItems);
                 }
 
                 return _blacklistItems;
@@ -68,7 +70,10 @@ namespace ActiveTimer.ViewModel
             {
                 _blacklistItems = value;
 
+                Data.Settings.BlacklistItems = _blacklistItems.ToList();
+
                 OnPropertyChanged(nameof(BlacklistItems));
+                SaveSettings();
             }
         }
 
@@ -76,9 +81,9 @@ namespace ActiveTimer.ViewModel
 
         #region Commands
 
-        private ICommand _createNewBlacklistItem;
+        private RelayCommand _createNewBlacklistItem;
 
-        public ICommand CreateNewBlacklistItem
+        public RelayCommand CreateNewBlacklistItem
         {
             get
             {
@@ -87,9 +92,9 @@ namespace ActiveTimer.ViewModel
                        (object o) =>
                        {
                            var k = new BlacklistItem("empty");
-                           _blacklistItems.Add(k);
-
+                           BlacklistItems.Add(k);
                            Data.Settings.BlacklistItems.Add(k);
+
                            SaveSettings();
                        },
                        (object o) =>
@@ -137,11 +142,19 @@ namespace ActiveTimer.ViewModel
         {
             _host = host;
             coreModule = activeTimer;
+            BlacklistItems.CollectionChanged += ColectionChanged;
+            
+        }
+
+        private void ColectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            SaveSettings();
         }
 
         public void SaveSettings()
         {
             _host.SaveModuleInformation(coreModule.GetModuleName(), "ActiveTimerSettings", Data.Settings);
+            Data.OnSettingsChanged?.Invoke();
         }
     }
 }
