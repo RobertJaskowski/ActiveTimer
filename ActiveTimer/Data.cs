@@ -20,11 +20,21 @@ namespace ActiveTimer
                 {
                     _settings = new ActiveTimerSettings()
                     {
-                        BlacklistEnabled = true,
-                        BlacklistItems = new List<BlacklistItem>()
+
                     };
 
                 }
+
+                if (_settings.Blacklist == null)
+                {
+                    _settings.Blacklist = new Blacklist()
+                    {
+                        BlacklistEnabled = true,
+                        BlacklistItems = new List<BlacklistItem>()
+                    };
+                }
+
+
                 return _settings;
             }
             internal set

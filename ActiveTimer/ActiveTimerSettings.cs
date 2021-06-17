@@ -9,8 +9,7 @@ namespace ActiveTimer
     [Serializable]
     public class ActiveTimerSettings
     {
-        public bool BlacklistEnabled;
-        public List<BlacklistItem> BlacklistItems;
+        public Blacklist Blacklist;
         public bool PlayChangeSound;
         public int PlayChangeVolume;
     }

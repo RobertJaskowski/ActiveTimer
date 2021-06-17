@@ -1,4 +1,5 @@
 ﻿using ActiveTimer;
+using ActiveTimer.Artist.StateControllers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -297,6 +298,8 @@ namespace ActiveTimer.ViewModel
         private IModuleController _host;
         private ICoreModule _core;
 
+        private List<ArtistStateController> stateControllers;
+
         public ActiveTimerViewModel(IModuleController host, ICoreModule activeTimer)
         {
             _host = host;
@@ -312,11 +315,17 @@ namespace ActiveTimer.ViewModel
             ActiveTimer.OnFullViewEnteredEvent += OnFullViewEntered;
 
             Data.OnSettingsChanged += OnSettingsChanged;
+
+            stateControllers = new List<ArtistStateController>();
+            stateControllers.Add(new ActiveArtistStateController());
+            stateControllers.Add(new InactiveArtistStateController());
+            stateControllers.Add(new ResumedArtistStateController());
+            stateControllers.Add(new PausedArtistStateController());
         }
 
         private void OnSettingsChanged()
         {
-            splitBlacklist.BlacklistItemsRequireRefreshing = true;
+            Data.Settings.Blacklist.BlacklistSplitItemsRequireRefreshing = true;
         }
 
         private void OnMinViewEntered()
@@ -345,130 +354,14 @@ namespace ActiveTimer.ViewModel
             string title = e.Title.ToLower().Trim();
             Debug.WriteLine("window switched callback " + title);
 
-            OnNewTitleFound(title);
+            OnTitleStateCheck(title);
             return;
 
 
 
-
-
         }
 
-        private BlacklistItem IsTitleBlackListed(string title)
-        {
-            BlacklistItem ret = IsTitleBlacklistedFromWindowsBlacklistedTitles(title);
-            if (ret != null)
-                return ret;
-
-            ret = IsTitleBlacklistedFromChromeBlacklistedTitles(title);
-            if (ret != null)
-            {
-                return ret;
-            }
-
-            return ret;
-        }
-
-        private BlacklistItem IsTitleBlacklistedFromChromeBlacklistedTitles(string title)
-        {
-
-            //foreach (BlacklistItem item in chrome)
-            //{
-            //    SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
-            //    if (title.Contains(settingsTabUrl.ToLower()))
-            //    {
-            //        ArtistPause.Execute(settingsTabUrl);
-
-
-            //        return;
-            //    }
-            //}
-
-
-            return splitBlacklist.chrome.Find((chromeTitleBlocked) =>
-            {
-                SplitProcessAndParameter(chromeTitleBlocked.Rule, out string process, out string settingsTabUrl);
-                if (title.Contains(settingsTabUrl.ToLowerInvariant()))
-                    return true;
-                return false;
-            });
-        }
-
-        private BlacklistItem IsTitleBlacklistedFromWindowsBlacklistedTitles(string title)
-        {
-
-            //foreach (BlacklistItem item in windows)
-            //{
-            //    if (title.Contains(item.Rule.ToLower(CultureInfo.InvariantCulture)))
-            //    {
-            //        ArtistPause.Execute(item.Rule);
-            //        Debug.WriteLine(TimeReason);
-            //        return;
-            //    }
-            //}
-
-            return splitBlacklist.windows.Find((windowTitleBlocked) => title.Contains(windowTitleBlocked.Rule.ToLowerInvariant()));
-        }
-
-
-        private SplitBlacklist splitBlacklist = new();
-
-        private class SplitBlacklist
-        {
-            public bool BlacklistItemsRequireRefreshing = true;
-
-
-            private List<BlacklistItem> _chrome;
-
-            public List<BlacklistItem> chrome
-            {
-                get
-                {
-                    AssignBlacklistedItems();
-                    return _chrome;
-                }
-            }
-
-            private List<BlacklistItem> _windows;
-            public List<BlacklistItem> windows
-            {
-                get
-                {
-                    AssignBlacklistedItems();
-                    return _windows;
-                }
-            }
-
-            private void AssignBlacklistedItems()
-            {
-                if (!BlacklistItemsRequireRefreshing)
-                    return;
-                BlacklistItemsRequireRefreshing = false;
-
-                _chrome = new List<BlacklistItem>();
-                _windows = new List<BlacklistItem>();
-                foreach (var item in Data.Settings.BlacklistItems)
-                {
-                    if (IsTitleChrome(item.Rule))
-                    {
-                        if (IsChromeTab(item.Rule.ToLower(), out string settingsTabUrl))
-                        {
-                            chrome.Add(item);
-                        }
-                        else
-                        {
-                            windows.Add(item);
-                        }
-                    }
-                    else
-                    {
-                        windows.Add(item);
-                    }
-                }
-            }
-        }
-
-        public void OnNewTitleFound(string title)
+        public void OnTitleStateCheck(string title)
         {
             if (IsTimerPausedByUser())
                 return;
@@ -481,10 +374,12 @@ namespace ActiveTimer.ViewModel
 
             lastWindow = title;
 
-            if (Data.Settings.BlacklistEnabled)
-                if (Data.Settings.BlacklistItems.Count > 0)
+            var dataBl = Data.Settings.Blacklist;
+
+            if (dataBl.BlacklistEnabled)
+                if (dataBl.BlacklistItems.Count > 0)
                 {
-                    if (!IsTitleAllowed(title, out BlacklistItem bl))
+                    if (!Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl))
                     {
                         ArtistPause.Execute(bl.Rule);
                         Debug.WriteLine(TimeReason);
@@ -501,71 +396,22 @@ namespace ActiveTimer.ViewModel
                 }
         }
 
+        private bool IsCurrentActiveWindowAllowedWindow(out BlacklistItem blacklistedRuleOnFalse)
+        {
+            blacklistedRuleOnFalse = null;
+            string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
+
+            var ret = Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl);
+            blacklistedRuleOnFalse = bl;
+            return ret;
+        }
         private bool IsCurrentActiveWindowAllowedWindow()
         {
             string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
 
-            return IsTitleAllowed(title, out BlacklistItem bl);
+            return Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl);
         }
 
-        public bool IsTitleAllowed(string title, out BlacklistItem blacklistItem)
-        {
-            blacklistItem = null;
-
-            if (IsTitleExcludedFromWindowTitleCapture(title)) return false;
-
-            BlacklistItem bl = IsTitleBlackListed(title);
-            if (bl != null)
-            {
-                blacklistItem = bl;
-                return false;
-            }
-
-            return true;
-
-        }
-
-        public static bool IsChromeTab(string title)
-        {
-            if (!IsTitleChrome(title)) return false;
-
-            SplitProcessAndParameter(title, out string process, out string param);
-            return !string.IsNullOrEmpty(param);
-        }
-
-        public static void SplitProcessAndParameter(string stringToSplit, out string process, out string parameter)
-        {
-            if (stringToSplit.Contains(':'))
-            {
-                List<string> spl = stringToSplit.Split(':').ToList<string>();
-                if (spl[1].Length > 0)
-                {
-                    process = spl[0];
-                    parameter = spl[1];
-                }
-                else
-                {
-                    process = spl[0];
-                    parameter = "";
-                }
-            }
-            else
-            {
-                process = stringToSplit;
-                parameter = "";
-            }
-        }
-
-        public static bool IsChromeTab(string title, out string url)
-        {
-            if (!IsTitleChrome(title))
-            {
-                url = "";
-                return false;
-            }
-            SplitProcessAndParameter(title, out string process, out url);
-            return !string.IsNullOrEmpty(url);
-        }
 
         private void CreateArtistStateTimers()
         {
@@ -605,36 +451,45 @@ namespace ActiveTimer.ViewModel
             inputReceivedThisTick = false;
             CheckIfAnyInputReceived();
 
-            if (Artist.ArtistState == ArtistState.PAUSED)
+            switch (Artist.ArtistState)
             {
-                if (!IsTimerPausedByUser() && inputReceivedThisTick && IsCurrentActiveWindowAllowedWindow())
-                    ArtistResume.Execute(null);
-                return;
-            }
-            else if (!Artist.ArtistActive)
-            {
-                if (inputReceivedThisTick)
-                {
-                    ArtistActivate.Execute(null);
-                }
+                case ArtistState.ACTIVE:
+                    string title = GetWindowTitle().ToString().ToLowerInvariant();
+                    if (!IsSameProcessTitle(title))
+                        if (IsCurrentActiveWindowAllowedWindow(out BlacklistItem blacklistItem))
+                            ArtistPause.Execute(blacklistItem.Rule);
 
-            }
-            else
-            {
-
-                if (inputReceivedThisTick)
-                {
-                    currentCheckingAfkTime = 0;
-                }
-                else
-                {
-                    currentCheckingAfkTime++;
-                    if (currentCheckingAfkTime > maxSecAfkTime)
+                    if (inputReceivedThisTick)
                     {
                         currentCheckingAfkTime = 0;
-                        ArtistDeactivate.Execute(null);
                     }
-                }
+                    else
+                    {
+                        currentCheckingAfkTime++;
+                        if (currentCheckingAfkTime > maxSecAfkTime)
+                        {
+                            currentCheckingAfkTime = 0;
+                            ArtistDeactivate.Execute(null);
+                        }
+                    }
+                    break;
+                case ArtistState.PAUSED:
+                    if (!IsTimerPausedByUser() && inputReceivedThisTick)
+                    {
+                        string titlee = GetWindowTitle().ToString().ToLowerInvariant();
+                        if (!IsSameProcessTitle(titlee))
+                            if (IsCurrentActiveWindowAllowedWindow())
+                                ArtistResume.Execute(null);
+                    }
+                    break;
+
+                default://inactive / resumed
+                    if (inputReceivedThisTick)
+                    {
+                        ArtistActivate.Execute(null);
+                    }
+                    break;
+
             }
         }
 
@@ -695,31 +550,7 @@ namespace ActiveTimer.ViewModel
             Data.OnSettingsChanged -= OnSettingsChanged;
         }
 
-        private bool IsTitleExcludedFromWindowTitleCapture(string title)
-        {
-            return IsTitleDesignTime(title) || IsTitleMainApplication(title) || IsTitleException(title);
-        }
 
-        private bool IsTitleDesignTime(string title)
-        {
-            return title.Contains("visual");
-        }
-
-        private bool IsTitleMainApplication(string title)
-        {
-            return title.Contains("caravansary") || title.Contains("caravaneer");
-        }
-
-        private bool IsTitleException(string title)
-        {
-            return title.Contains("task switching");
-        }
-
-
-        public static bool IsTitleChrome(string title)
-        {
-            return title.Contains("chrome");
-        }
 
         private string lastWindow;
         private bool IsSameProcessTitle(string title)
@@ -738,6 +569,27 @@ namespace ActiveTimer.ViewModel
                 if (TimeReason.ToLower().Contains("user"))
                     return true;
             return false;
+        }
+
+        public bool IsTitleExcludedFromWindowTitleCapture(string title)
+        {
+            return IsTitleDesignTime(title) || IsTitleMainApplication(title) || IsTitleException(title);
+        }
+
+
+        private bool IsTitleDesignTime(string title)
+        {
+            return title.Contains("visual");
+        }
+
+        private bool IsTitleMainApplication(string title)
+        {
+            return title.Contains("caravansary") || title.Contains("caravaneer");
+        }
+
+        private bool IsTitleException(string title)
+        {
+            return title.Contains("task switching");
         }
     }
 }

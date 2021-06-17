@@ -16,10 +16,10 @@ namespace ActiveTimer.ViewModel
 
         public bool CheckBoxBlacklistEnabled
         {
-            get => Data.Settings.BlacklistEnabled;
+            get => Data.Settings.Blacklist.BlacklistEnabled;
             set
             {
-                Data.Settings.BlacklistEnabled = value;
+                Data.Settings.Blacklist.BlacklistEnabled = value;
 
                 OnPropertyChanged(nameof(CheckBoxBlacklistEnabled));
                 SaveSettings();
@@ -61,7 +61,7 @@ namespace ActiveTimer.ViewModel
             {
                 if (_blacklistItems == null)
                 {
-                    _blacklistItems = new(Data.Settings.BlacklistItems);
+                    _blacklistItems = new(Data.Settings.Blacklist.BlacklistItems);
                 }
 
                 return _blacklistItems;
@@ -70,7 +70,7 @@ namespace ActiveTimer.ViewModel
             {
                 _blacklistItems = value;
 
-                Data.Settings.BlacklistItems = _blacklistItems.ToList();
+                Data.Settings.Blacklist.BlacklistItems = _blacklistItems.ToList();
 
                 OnPropertyChanged(nameof(BlacklistItems));
                 SaveSettings();
@@ -93,7 +93,7 @@ namespace ActiveTimer.ViewModel
                        {
                            var k = new BlacklistItem("empty");
                            BlacklistItems.Add(k);
-                           Data.Settings.BlacklistItems.Add(k);
+                           Data.Settings.Blacklist.BlacklistItems.Add(k);
 
                            SaveSettings();
                        },
@@ -120,7 +120,7 @@ namespace ActiveTimer.ViewModel
                            {
                                BlacklistItems.Remove(o as BlacklistItem);
 
-                               Data.Settings.BlacklistItems.Remove(o as BlacklistItem);
+                               Data.Settings.Blacklist.BlacklistItems.Remove(o as BlacklistItem);
                                SaveSettings();
                            }
                        },
