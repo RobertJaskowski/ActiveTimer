@@ -21,8 +21,8 @@ namespace ActiveTimer.ViewModel
     {
         #region Properties
 
-        private const int maxSecAfkTime = 2;
-        private int currentCheckingAfkTime = 0;
+        public readonly int maxSecAfkTime = 2;
+        public int currentCheckingAfkTime = 0;
 
         private ArtistModel _artistModel;
 
@@ -295,7 +295,7 @@ namespace ActiveTimer.ViewModel
 
         #endregion Commands
 
-        private IModuleController _host;
+        public IModuleController _host;
         private ICoreModule _core;
 
         private List<ArtistStateController> stateControllers;
@@ -316,11 +316,16 @@ namespace ActiveTimer.ViewModel
 
             Data.OnSettingsChanged += OnSettingsChanged;
 
-            stateControllers = new List<ArtistStateController>();
-            stateControllers.Add(new ActiveArtistStateController());
-            stateControllers.Add(new InactiveArtistStateController());
-            stateControllers.Add(new ResumedArtistStateController());
-            stateControllers.Add(new PausedArtistStateController());
+            stateControllers = new List<ArtistStateController>
+            {
+                new ActiveArtistStateController(this),
+                new InactiveArtistStateController(this),
+                new ResumedArtistStateController(this),
+                new PausedArtistStateController(this)
+            };
+
+
+            ArtistActivate?.Execute(null);
         }
 
         private void OnSettingsChanged()
@@ -354,63 +359,48 @@ namespace ActiveTimer.ViewModel
             string title = e.Title.ToLower().Trim();
             Debug.WriteLine("window switched callback " + title);
 
-            OnTitleStateCheck(title);
-            return;
+            //if (IsTimerPausedByUser())
+            //    return;
+            if (IsTitleDifferentAndValidTitleCapture(title))
+                OnNewTitleCaptured(title);
+
+            //var dataBl = Data.Settings.Blacklist;
+
+            //if (dataBl.BlacklistEnabled)
+            //    if (dataBl.BlacklistItems.Count > 0)
+            //    {
+            //        if (!Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl))
+            //        {
+            //            ArtistPause.Execute(bl.Rule);
+            //            Debug.WriteLine(TimeReason);
+            //            return;
+            //        }
+            //    }
 
 
+
+            //if (Artist.ArtistState != ArtistState.ACTIVE)
+            //    if (IsTimerPausedByUser())
+            //    {
+            //        ArtistResume.Execute(null);
+            //    }
 
         }
 
-        public void OnTitleStateCheck(string title)
+        public void OnNewTitleCaptured(string title)
         {
-            if (IsTimerPausedByUser())
-                return;
-
-            if (IsTitleExcludedFromWindowTitleCapture(title))
-                return;
-
-            if (IsSameProcessTitle(title))
-                return;
-
-            lastWindow = title;
-
-            var dataBl = Data.Settings.Blacklist;
-
-            if (dataBl.BlacklistEnabled)
-                if (dataBl.BlacklistItems.Count > 0)
-                {
-                    if (!Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl))
-                    {
-                        ArtistPause.Execute(bl.Rule);
-                        Debug.WriteLine(TimeReason);
-                        return;
-                    }
-                }
+            CurrentWindowTitle = title;
 
 
+            if (currentTickStateController.IsTransitionAvailable(out ArtistState artistState))
+                currentTickStateController.TransitionToNextState();
 
-            if (Artist.ArtistState != ArtistState.ACTIVE)
-                if (IsTimerPausedByUser())
-                {
-                    ArtistResume.Execute(null);
-                }
+
+            PreviousWindowTitle = CurrentWindowTitle;
+
         }
 
-        private bool IsCurrentActiveWindowAllowedWindow(out BlacklistItem blacklistedRuleOnFalse)
-        {
-            blacklistedRuleOnFalse = null;
-            string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
 
-            var ret = Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl);
-            blacklistedRuleOnFalse = bl;
-            return ret;
-        }
-        private bool IsCurrentActiveWindowAllowedWindow()
-        {
-            string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
-
-            return Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem bl);
-        }
 
 
         private void CreateArtistStateTimers()
@@ -421,82 +411,45 @@ namespace ActiveTimer.ViewModel
             timerArtistStateCheck.Start();
         }
 
+        ArtistStateController prevTickStateController;
+        ArtistStateController currentTickStateController;
+        private bool IsTransitionAvailable;
+
+        private ArtistStateController GetCurrentStateController()
+        {
+            return stateControllers.First((sc) => sc.IsThisStateCurrentStateOfArtist());
+        }
+
+        
+
         private void TimerTick(object sender, EventArgs e)
         {
+            InputReceivedThisTick = false;
+            CheckAndSetForInputReceived();
+
+            currentTickStateController = GetCurrentStateController();
 
 
-            CheckStateChanges();
+            var tempTitle = GetWindowTitle().ToString().ToLowerInvariant();
 
-            switch (Artist.ArtistState)
-            {
-                case ArtistState.ACTIVE:
-                    OnArtistStateActiveTick();
-                    break;
 
-                case ArtistState.INACTIVE:
-                    OnArtistStateInactiveTick();
-                    break;
 
-                case ArtistState.PAUSED:
-                    break;
+            if (IsTitleValidWindowTitleCapture(tempTitle))
+                OnNewTitleCaptured(tempTitle);
 
-                case ArtistState.RESUMED:
-                    OnArtistStateResumeTick();
-                    break;
-            }
+
+
+
+            currentTickStateController.Tick();
+
+            prevTickStateController = currentTickStateController;
+
         }
 
-        private void CheckStateChanges()
-        {
-            inputReceivedThisTick = false;
-            CheckIfAnyInputReceived();
+        public bool InputReceivedThisTick = false;
+        public uint lastActive = 0;
 
-            switch (Artist.ArtistState)
-            {
-                case ArtistState.ACTIVE:
-                    string title = GetWindowTitle().ToString().ToLowerInvariant();
-                    if (!IsSameProcessTitle(title))
-                        if (IsCurrentActiveWindowAllowedWindow(out BlacklistItem blacklistItem))
-                            ArtistPause.Execute(blacklistItem.Rule);
-
-                    if (inputReceivedThisTick)
-                    {
-                        currentCheckingAfkTime = 0;
-                    }
-                    else
-                    {
-                        currentCheckingAfkTime++;
-                        if (currentCheckingAfkTime > maxSecAfkTime)
-                        {
-                            currentCheckingAfkTime = 0;
-                            ArtistDeactivate.Execute(null);
-                        }
-                    }
-                    break;
-                case ArtistState.PAUSED:
-                    if (!IsTimerPausedByUser() && inputReceivedThisTick)
-                    {
-                        string titlee = GetWindowTitle().ToString().ToLowerInvariant();
-                        if (!IsSameProcessTitle(titlee))
-                            if (IsCurrentActiveWindowAllowedWindow())
-                                ArtistResume.Execute(null);
-                    }
-                    break;
-
-                default://inactive / resumed
-                    if (inputReceivedThisTick)
-                    {
-                        ArtistActivate.Execute(null);
-                    }
-                    break;
-
-            }
-        }
-
-        private bool inputReceivedThisTick = false;
-        private uint lastActive = 0;
-
-        private bool CheckIfAnyInputReceived()
+        private bool CheckAndSetForInputReceived()
         {
             LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
             lastInputInfo.cbSize = (UInt32)Marshal.SizeOf(lastInputInfo);
@@ -507,7 +460,7 @@ namespace ActiveTimer.ViewModel
                 if (lastInputInfo.dwTime != lastActive)
                 {
                     lastActive = lastInputInfo.dwTime;
-                    inputReceivedThisTick = true;
+                    InputReceivedThisTick = true;
                     return true;
                 }
             }
@@ -515,34 +468,11 @@ namespace ActiveTimer.ViewModel
             return false;
         }
 
-        private float topPercentFilled = 0;
+        public float topPercentFilled = 0;
         public int timeSecToFillTopBar = 0;
 
-        private void OnArtistStateActiveTick()
-        {
-            ActiveTimeUpdate1Sec.Execute(null);
 
 
-            if (timeSecToFillTopBar == 0)
-                return;
-
-            float rest = (float)(Artist.ActiveTime.TotalSeconds % (timeSecToFillTopBar));
-            topPercentFilled = Utils.ToProcentage(rest, 0, timeSecToFillTopBar);
-
-            _host.SendMessage("MainBar", "value|||" + topPercentFilled);
-        }
-
-        private void OnArtistStateInactiveTick()
-        {
-        }
-
-        private void OnArtistStateResumeTick()
-        {
-            ActiveTimeUpdate1Sec.Execute(null);
-
-
-            TimeReason = "";
-        }
 
         public void Stop()
         {
@@ -551,19 +481,36 @@ namespace ActiveTimer.ViewModel
         }
 
 
-
-        private string lastWindow;
-        private bool IsSameProcessTitle(string title)
+        public bool IsCurrentActiveWindowTargetableValidWindow()
         {
-            if (lastWindow == null)
+
+            string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
+
+            if (!IsTitleValidWindowTitleCapture(title))
                 return false;
 
-            if (lastWindow.Equals(title))
+
+            return true;
+        }
+
+        public bool IsTitleDifferentAndValidTitleCapture(string title)
+        {
+            return !IsTitleSameTitleAsPrevious(title) && IsTitleValidWindowTitleCapture(title);
+        }
+
+        public string CurrentWindowTitle;
+        public string PreviousWindowTitle;
+        public bool IsTitleSameTitleAsPrevious(string title)
+        {
+            if (PreviousWindowTitle == null)
+                return false;
+
+            if (PreviousWindowTitle.Equals(title))
                 return true;
             return false;
         }
 
-        private bool IsTimerPausedByUser()
+        public bool IsTimerPausedByUser()
         {
             if (TimeReason != null)
                 if (TimeReason.ToLower().Contains("user"))
@@ -571,9 +518,21 @@ namespace ActiveTimer.ViewModel
             return false;
         }
 
-        public bool IsTitleExcludedFromWindowTitleCapture(string title)
+        public bool IsTitleValidWindowTitleCapture(string title)
         {
-            return IsTitleDesignTime(title) || IsTitleMainApplication(title) || IsTitleException(title);
+            if (string.IsNullOrEmpty(title))
+                return false;
+
+            if (IsTitleDesignTime(title))
+                return false;
+
+            if (IsTitleMainApplication(title))
+                return false;
+
+            if (IsTitleException(title))
+                return false;
+
+            return true;
         }
 
 

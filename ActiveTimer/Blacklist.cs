@@ -64,77 +64,56 @@ namespace ActiveTimer
             }
         }
 
-        private BlacklistItem IsTitleBlackListed(string title)
+        private bool IsTitleBlacklisted(string title, out BlacklistItem foundBlacklistItem)
         {
-            BlacklistItem ret = IsTitleBlacklistedFromWindowsBlacklistedTitles(title);
-            if (ret != null)
-                return ret;
+            foundBlacklistItem = BlacklistItems?.Find((blItem) => title.Contains(blItem.Rule.ToLowerInvariant()));
+            return foundBlacklistItem != null;
 
-            ret = IsTitleBlacklistedFromChromeBlacklistedTitles(title);
-            if (ret != null)
-            {
-                return ret;
-            }
-
-            return ret;
         }
 
-        private BlacklistItem IsTitleBlacklistedFromChromeBlacklistedTitles(string title)
+        private bool IsTitleBlackListedSplit(string title,out BlacklistItem foundBlacklistItem)
         {
+            AssignBlacklistedItems();
 
-            //foreach (BlacklistItem item in chrome)
-            //{
-            //    SplitProcessAndParameter(item.Rule, out string process, out string settingsTabUrl);
-            //    if (title.Contains(settingsTabUrl.ToLower()))
-            //    {
-            //        ArtistPause.Execute(settingsTabUrl);
+            if (IsTitleBlacklistedFromWindowsBlacklistedTitles(title, out foundBlacklistItem))
+                return true;
+            
 
-
-            //        return;
-            //    }
-            //}
+            if (IsTitleBlacklistedFromChromeBlacklistedTitles(title, out foundBlacklistItem))
+                return true;
 
 
-            return ChromeTitles?.Find((chromeTitleBlocked) =>
-            {
-                ChromeHelper.SplitProcessAndParameter(chromeTitleBlocked.Rule, out string process, out string settingsTabUrl);
-                if (title.Contains(settingsTabUrl.ToLowerInvariant()))
-                    return true;
-                return false;
-            });
+            return false;
         }
 
-        private BlacklistItem IsTitleBlacklistedFromWindowsBlacklistedTitles(string title)
+        private bool IsTitleBlacklistedFromChromeBlacklistedTitles(string title, out BlacklistItem foundBlacklistItem)
         {
-
-            //foreach (BlacklistItem item in windows)
-            //{
-            //    if (title.Contains(item.Rule.ToLower(CultureInfo.InvariantCulture)))
-            //    {
-            //        ArtistPause.Execute(item.Rule);
-            //        Debug.WriteLine(TimeReason);
-            //        return;
-            //    }
-            //}
-
-            return WindowsTitles?.Find((windowTitleBlocked) => title.Contains(windowTitleBlocked.Rule.ToLowerInvariant()));
+            foundBlacklistItem = ChromeTitles?.Find((chromeTitleBlocked) =>
+             {
+                 ChromeHelper.SplitProcessAndParameter(chromeTitleBlocked.Rule, out string process, out string settingsTabUrl);
+                 if (title.Contains(settingsTabUrl.ToLowerInvariant()))
+                     return true;
+                 return false;
+             });
+            return foundBlacklistItem != null;
         }
 
-        public bool IsTitleAllowed(string title, out BlacklistItem blacklistItem)
+        private bool IsTitleBlacklistedFromWindowsBlacklistedTitles(string title, out BlacklistItem foundBlacklistItem)
         {
-            blacklistItem = null;
+            foundBlacklistItem = WindowsTitles?.Find((windowTitleBlocked) => title.Contains(windowTitleBlocked.Rule.ToLowerInvariant()));
+            return foundBlacklistItem != null;
+        }
 
-            BlacklistItem bl = IsTitleBlackListed(title);
-            if (bl != null)
+        public bool IsTitleAllowed(string title, out BlacklistItem blacklistedItem)
+        {
+            if(IsTitleBlacklisted(title, out blacklistedItem))
             {
-                blacklistItem = bl;
                 return false;
             }
-
             return true;
 
         }
-        
+
 
     }
 }
