@@ -1,16 +1,12 @@
-﻿using ActiveTimer;
-using ActiveTimer.Artist.StateControllers;
+﻿using ActiveTimer.Artist.StateControllers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Media;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -65,6 +61,7 @@ namespace ActiveTimer.ViewModel
         #endregion Properties
 
         #region Commands
+
         public ICommand ActiveTimeClicked { get; }
         public ICommand ResetButton { get; }
 
@@ -77,19 +74,13 @@ namespace ActiveTimer.ViewModel
 
         public ActiveTimerViewModel(IModuleController host, ICoreModule activeTimer)
         {
-
             _host = host;
             _core = activeTimer;
 
-
             _artistModel = new ArtistModel(TimeSpan.FromSeconds(0));
-
-
 
             ActiveTimeClicked = new RelayCommand((e) => currentTickStateController.OnTimeClicked());
             ResetButton = new RelayCommand((e) => Artist.ActiveTime = TimeSpan.FromSeconds(0));
-
-
 
             CreateArtistStateTimers();
 
@@ -113,7 +104,6 @@ namespace ActiveTimer.ViewModel
             currentTickStateController = GetStateController("Active");
         }
 
-
         public void UpdateActiveTime(int second = 1)
         {
             Artist.ActiveTime += TimeSpan.FromSeconds(second);
@@ -128,21 +118,21 @@ namespace ActiveTimer.ViewModel
 
         public void ChangeState(string stateName, object data = null)
         {
-
             var s = GetStateController(stateName);
             ChangeState(s, data);
         }
-
 
         private void ChangeState(ArtistStateController toState, object data = null)
         {
             currentTickStateController = toState;
             currentTickStateController.OnEnter(data);
         }
+
         public ArtistStateController GetStateController(Type type)
         {
             return stateControllers?.Find((e) => e.GetType() == type);
         }
+
         public ArtistStateController GetStateController(string name)
         {
             return stateControllers?.Find((e) => e.IsSameStateByName(name));
@@ -178,7 +168,6 @@ namespace ActiveTimer.ViewModel
             player.Play();
         }
 
-
         private void WindowSwitched(WindowSwitchedArgs e)
         {
             string title = e.Title.ToLower().Trim();
@@ -202,15 +191,13 @@ namespace ActiveTimer.ViewModel
             //        }
             //    }
 
-
-
             //if (Artist.ArtistState != ArtistState.ACTIVE)
             //    if (IsTimerPausedByUser())
             //    {
             //        ArtistResume.Execute(null);
             //    }
-
         }
+
         public void OnTitleCaptured(string title)
         {
             CurrentWindowTitle = title;
@@ -221,8 +208,6 @@ namespace ActiveTimer.ViewModel
 
         public void OnNewTitleCaptured(string title)
         {
-
-
             IsTransitionCheckedThisTick = true;
             if (currentTickStateController.IsTransitionAvailable(out string artistState))
             {
@@ -233,14 +218,8 @@ namespace ActiveTimer.ViewModel
             else
                 IsTransitionAvailableThisTick = false;
 
-
-
             PreviousWindowTitle = CurrentWindowTitle;
-
         }
-
-
-
 
         private void CreateArtistStateTimers()
         {
@@ -250,8 +229,8 @@ namespace ActiveTimer.ViewModel
             timerArtistStateCheck.Start();
         }
 
-        ArtistStateController prevTickStateController;
-        ArtistStateController currentTickStateController;
+        private ArtistStateController prevTickStateController;
+        private ArtistStateController currentTickStateController;
         private bool IsControllerTickedThisTick;
         private bool IsTransitionCheckedThisTick;
         private bool IsTransitionHappenedThisTick;
@@ -264,11 +243,8 @@ namespace ActiveTimer.ViewModel
             return stateControllers.First((sc) => sc.IsSameStateByName(Artist.ArtistState));
         }
 
-
-
         private void TimerTick(object sender, EventArgs e)
         {
-
             IsControllerTickedThisTick = false;
             IsTransitionCheckedThisTick = false;
             IsTransitionHappenedThisTick = false;
@@ -277,11 +253,7 @@ namespace ActiveTimer.ViewModel
 
             currentTickStateController = GetCurrentStateController();
 
-
-
             var tempTitle = GetWindowTitle().ToString().ToLowerInvariant();
-
-
 
             if (IsTitleValidWindowTitleCapture(tempTitle))
                 OnTitleCaptured(tempTitle);
@@ -296,7 +268,6 @@ namespace ActiveTimer.ViewModel
                 else
                     IsTransitionAvailableThisTick = false;
             }
-
 
             if (!IsTransitionHappenedThisTick && IsTransitionAvailableThisTick)
             {
@@ -319,7 +290,6 @@ namespace ActiveTimer.ViewModel
         {
             OnPropertyChanged(nameof(ArtistTimeString));
         }
-
 
         public float topPercentFilled = 0;
         public int timeSecToFillTopBar = 0;
@@ -352,15 +322,12 @@ namespace ActiveTimer.ViewModel
             Data.OnSettingsChanged -= OnSettingsChanged;
         }
 
-
         public bool IsCurrentActiveWindowTargetableValidWindow()
         {
-
             string title = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
 
             if (!IsTitleValidWindowTitleCapture(title))
                 return false;
-
 
             return true;
         }
@@ -372,6 +339,7 @@ namespace ActiveTimer.ViewModel
 
         public string CurrentWindowTitle;
         public string PreviousWindowTitle;
+
         public bool IsTitleSameTitleAsPrevious(string title)
         {
             if (PreviousWindowTitle == null)
@@ -406,7 +374,6 @@ namespace ActiveTimer.ViewModel
 
             return true;
         }
-
 
         private bool IsTitleDesignTime(string title)
         {

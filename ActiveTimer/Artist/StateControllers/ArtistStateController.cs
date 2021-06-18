@@ -1,10 +1,4 @@
 ﻿using ActiveTimer.ViewModel;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 public abstract class ArtistStateController
 {
@@ -15,16 +9,18 @@ public abstract class ArtistStateController
     {
         main = mainVM;
     }
+
     public abstract void OnEnter(object o);
 
     public abstract bool IsTransitionAvailable(out string artistState);
+
     public abstract void TransitionToNextState();
+
     public abstract void Tick();
 
     public abstract void OnTimeClicked();
+
     public abstract string GetTimerText();
-
-
 
     public bool IsSameStateByName(string other)
     {
@@ -34,8 +30,8 @@ public abstract class ArtistStateController
             return true;
 
         return false;
-
     }
+
     public bool IsSameStateByName(ArtistStateController other)
     {
         if (other == null) return false;
@@ -44,6 +40,5 @@ public abstract class ArtistStateController
             return true;
 
         return false;
-
     }
 }

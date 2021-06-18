@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ActiveTimer
 {
@@ -11,7 +8,6 @@ namespace ActiveTimer
     {
         public bool BlacklistEnabled;
         public List<BlacklistItem> BlacklistItems;
-
 
         public bool BlacklistSplitItemsRequireRefreshing = true;
 
@@ -27,6 +23,7 @@ namespace ActiveTimer
         }
 
         private List<BlacklistItem> _windows;
+
         public List<BlacklistItem> WindowsTitles
         {
             get
@@ -68,20 +65,17 @@ namespace ActiveTimer
         {
             foundBlacklistItem = BlacklistItems?.Find((blItem) => title.Contains(blItem.Rule.ToLowerInvariant()));
             return foundBlacklistItem != null;
-
         }
 
-        private bool IsTitleBlackListedSplit(string title,out BlacklistItem foundBlacklistItem)
+        private bool IsTitleBlackListedSplit(string title, out BlacklistItem foundBlacklistItem)
         {
             AssignBlacklistedItems();
 
             if (IsTitleBlacklistedFromWindowsBlacklistedTitles(title, out foundBlacklistItem))
                 return true;
-            
 
             if (IsTitleBlacklistedFromChromeBlacklistedTitles(title, out foundBlacklistItem))
                 return true;
-
 
             return false;
         }
@@ -106,14 +100,11 @@ namespace ActiveTimer
 
         public bool IsTitleAllowed(string title, out BlacklistItem blacklistedItem)
         {
-            if(IsTitleBlacklisted(title, out blacklistedItem))
+            if (IsTitleBlacklisted(title, out blacklistedItem))
             {
                 return false;
             }
             return true;
-
         }
-
-
     }
 }

@@ -1,11 +1,10 @@
-﻿
-using System;
+﻿using System;
 using System.ComponentModel;
 
 public class ArtistModel : INotifyPropertyChanged
 {
+    private string _currentArtistState;
 
-    string _currentArtistState;
     public string ArtistState
     {
         get => _currentArtistState; set
@@ -14,6 +13,7 @@ public class ArtistModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(ArtistState));
         }
     }
+
     //public bool ArtistActive
     //{
     //    get
@@ -22,13 +22,12 @@ public class ArtistModel : INotifyPropertyChanged
     //    }
     //    set
     //    {
-
     //        OnPropertyChanged(nameof(ArtistState));
     //    }
     //}todo remove
 
+    private TimeSpan _activeTime;
 
-    TimeSpan _activeTime;
     public TimeSpan ActiveTime
     {
         get
@@ -48,10 +47,8 @@ public class ArtistModel : INotifyPropertyChanged
         ArtistState = "Active";
     }
 
-
-
-
     #region INotifyPropertyChanged Members;
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     private void OnPropertyChanged(string propertyName)
@@ -64,10 +61,5 @@ public class ArtistModel : INotifyPropertyChanged
         }
     }
 
-    #endregion
+    #endregion INotifyPropertyChanged Members;
 }
-
-
-
-
-

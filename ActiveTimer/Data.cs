@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ActiveTimer
 {
@@ -20,9 +17,7 @@ namespace ActiveTimer
                 {
                     _settings = new ActiveTimerSettings()
                     {
-
                     };
-
                 }
 
                 if (_settings.Blacklist == null)
@@ -34,14 +29,11 @@ namespace ActiveTimer
                     };
                 }
 
-
                 return _settings;
             }
             internal set
             {
                 _settings = value;
-
-
             }
         }
     }

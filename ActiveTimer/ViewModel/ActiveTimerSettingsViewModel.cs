@@ -1,12 +1,6 @@
 ﻿using Caravansary.SDK;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace ActiveTimer.ViewModel
 {
@@ -143,7 +137,6 @@ namespace ActiveTimer.ViewModel
             _host = host;
             coreModule = activeTimer;
             BlacklistItems.CollectionChanged += ColectionChanged;
-            
         }
 
         private void ColectionChanged(object sender, NotifyCollectionChangedEventArgs e)

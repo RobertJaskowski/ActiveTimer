@@ -1,7 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Configuration;
-
 
 [Serializable]
 public class BlacklistItem : INotifyPropertyChanged
@@ -30,6 +28,7 @@ public class BlacklistItem : INotifyPropertyChanged
     }
 
     #region INotifyPropertyChanged Members;
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected void OnPropertyChanged(string propertyName)
@@ -37,9 +36,5 @@ public class BlacklistItem : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    #endregion
+    #endregion INotifyPropertyChanged Members;
 }
-
-
-
-

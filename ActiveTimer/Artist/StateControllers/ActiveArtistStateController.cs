@@ -1,9 +1,4 @@
 ﻿using ActiveTimer.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ActiveTimer.Artist.StateControllers
 {
@@ -14,15 +9,12 @@ namespace ActiveTimer.Artist.StateControllers
             availableTransitionState = StateName;
         }
 
-
         private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
 
         public override string StateName => "Active";
 
-
         private BlacklistItem transitionBlacklistItem;
         private string availableTransitionState;
-
 
         public override bool IsTransitionAvailable(out string nextTransitionStateAvailable)
         {
@@ -58,24 +50,20 @@ namespace ActiveTimer.Artist.StateControllers
 
                     //main.ArtistDeactivate.Execute(null);
                     return true;
-
                 }
             }
 
             return false;
         }
+
         public override void TransitionToNextState()
         {
-
             main.ChangeState(availableTransitionState, transitionBlacklistItem.Rule);
-
         }
-
 
         public override void Tick()
         {
             main.UpdateActiveTime(1);
-
 
             if (main.timeSecToFillTopBar == 0)
                 return;
@@ -90,7 +78,6 @@ namespace ActiveTimer.Artist.StateControllers
         {
             main.Artist.ArtistState = "Active";
 
-
             if (Data.Settings.PlayChangeSound)
             {
                 main.PlaySound("Rise02.wav");
@@ -103,13 +90,11 @@ namespace ActiveTimer.Artist.StateControllers
         public override string GetTimerText()
         {
             return main.Artist.ActiveTime.ToString();
-
         }
 
         public override void OnTimeClicked()
         {
             main.ChangeState(typeof(PausedArtistStateController), "user");
-
         }
     }
 }

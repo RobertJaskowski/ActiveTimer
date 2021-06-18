@@ -99,7 +99,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBox Background="{x:Null}" 
+                        <TextBox Background="{x:Null}"
                                  Text="{Binding Rule, FallbackValue=empty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             Command="{Binding Path=DataContext.RemoveBlacklistItem, RelativeSource={RelativeSource AncestorType=ListView}}"

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Windows.Input;
 
 public class RelayCommand : ICommand
@@ -41,6 +40,5 @@ public class RelayCommand : ICommand
     public void Execute(object parameter)
     {
         execute(parameter);
-
     }
 }

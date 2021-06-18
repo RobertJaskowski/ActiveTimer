@@ -1,14 +1,13 @@
 ﻿using ActiveTimer.View;
+using ActiveTimer.ViewModel;
 using System;
 using System.Diagnostics;
 using System.Windows.Controls;
-using ActiveTimer.ViewModel;
 
 namespace ActiveTimer
 {
     public class ActiveTimer : ICoreModule
     {
-
         public string ModuleName
         {
             get
@@ -18,6 +17,7 @@ namespace ActiveTimer
         }
 
         private UserControl _view;
+
         public UserControl View
         {
             get
@@ -33,9 +33,8 @@ namespace ActiveTimer
             set { _view = value; }
         }
 
-
-
         private UserControl _settingsView;
+
         public UserControl SettingsView
         {
             get
@@ -51,20 +50,15 @@ namespace ActiveTimer
             set { _settingsView = value; }
         }
 
-
-
         public static Action OnMinViewEnteredEvent;
         public static Action OnFullViewEnteredEvent;
 
-
-
         private IModuleController _host;
+
         public void Init(IModuleController host)
         {
             _host = host;
             Data.Settings = _host.LoadModuleInformation<ActiveTimerSettings>(GetModuleName(), "ActiveTimerSettings");
-
-
         }
 
         public void Start()
@@ -72,30 +66,24 @@ namespace ActiveTimer
             Debug.WriteLine(ModuleName + " started");
         }
 
-
         public void Stop()
         {
             ((ActiveTimerViewModel)_view.DataContext).Stop();
 
-
             Debug.WriteLine(ModuleName + " stopped");
-
         }
 
         public void ReceiveMessage(string message)
         {
             Debug.WriteLine(ModuleName + " received " + message);
-
-
         }
+
         public void OnInteractableEntered()
         {
-
         }
 
         public void OnInteractableExited()
         {
-
         }
 
         public void OnMinViewEntered()
@@ -127,7 +115,5 @@ namespace ActiveTimer
         {
             return ModuleName;
         }
-
-        
     }
 }

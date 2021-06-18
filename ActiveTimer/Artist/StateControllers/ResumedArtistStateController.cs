@@ -1,9 +1,5 @@
 ﻿using ActiveTimer.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ActiveTimer.Artist.StateControllers
 {
@@ -12,22 +8,17 @@ namespace ActiveTimer.Artist.StateControllers
         public ResumedArtistStateController(ActiveTimerViewModel mainVM) : base(mainVM)
         {
             availableTransitionState = StateName;
-
         }
-
 
         public override void OnEnter(object o)
         {
-
             main.Artist.ArtistState = "Resumed";
             if (o is string)
                 main.TimeReason = "";
 
-
             main._host.SendMessage("MainBar", "color|||" + "221|||44|||0");
 
             main._host.SendMessage("ActiveTimer", "IsActive");
-
         }
 
         private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
@@ -41,10 +32,8 @@ namespace ActiveTimer.Artist.StateControllers
             availableTransitionState = StateName;
             availableState = StateName;
 
-
             if (main.InputReceivedThisTick)
             {
-
                 availableTransitionState = "Active";
                 availableState = "Active";
 
@@ -76,7 +65,6 @@ namespace ActiveTimer.Artist.StateControllers
 
         public override void OnTimeClicked()
         {
-
         }
     }
 }

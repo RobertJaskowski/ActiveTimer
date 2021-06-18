@@ -1,9 +1,4 @@
 ﻿using ActiveTimer.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ActiveTimer.Artist.StateControllers
 {
@@ -12,9 +7,7 @@ namespace ActiveTimer.Artist.StateControllers
         public InactiveArtistStateController(ActiveTimerViewModel mainVM) : base(mainVM)
         {
             availableTransitionState = StateName;
-
         }
-
 
         private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
 
@@ -26,14 +19,12 @@ namespace ActiveTimer.Artist.StateControllers
         {
             artistState = StateName;
 
-
             if (main.InputReceivedThisTick)
             {
                 //main.ArtistActivate.Execute(null);
 
                 availableTransitionState = "Active";
                 artistState = "Active";
-
 
                 return true;
             }
@@ -47,14 +38,11 @@ namespace ActiveTimer.Artist.StateControllers
 
         public override void Tick()
         {
-
         }
 
         public override void OnEnter(object o)
         {
             main.Artist.ArtistState = "Inactive";
-
-
 
             if (Data.Settings.PlayChangeSound)
             {
@@ -67,17 +55,14 @@ namespace ActiveTimer.Artist.StateControllers
             main._host.SendMessage("ActiveTimer", "IsNotActive");
         }
 
-
         public override string GetTimerText()
         {
             return main.Artist.ActiveTime.ToString();
-
         }
 
         public override void OnTimeClicked()
         {
-           main.ChangeState(typeof(PausedArtistStateController), "user");
-
+            main.ChangeState(typeof(PausedArtistStateController), "user");
         }
     }
 }

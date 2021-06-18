@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ActiveTimer
 {
     public static class ChromeHelper
     {
-
         public static bool IsChromeTab(string title)
         {
             if (!IsTitleChrome(title)) return false;
@@ -55,6 +51,5 @@ namespace ActiveTimer
         {
             return title.Contains("chrome");
         }
-
     }
 }

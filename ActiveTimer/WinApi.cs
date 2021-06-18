@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 
 public class WinApi
 {
+    [DllImport("kernel32.dll")]
+    private static extern uint GetLastError();
 
     [DllImport("kernel32.dll")]
-    static extern uint GetLastError();
-
-    [DllImport("kernel32.dll")]
-    static extern uint GetCurrentThreadId();
-
+    private static extern uint GetCurrentThreadId();
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -30,13 +26,10 @@ public class WinApi
     public static extern IntPtr GetForegroundWindow();
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
+    private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-    static extern int GetWindowTextLength(IntPtr hWnd);
-
-
+    private static extern int GetWindowTextLength(IntPtr hWnd);
 
     public static StringBuilder GetWindowTitle()
     {
@@ -45,14 +38,10 @@ public class WinApi
         StringBuilder sb = new StringBuilder(length + 1);
         GetWindowText(i, sb, sb.Capacity);
         return sb;
-
     }
-
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetActiveWindow();
-
-
 
     //[DllImport("user32.dll")]
     //public static extern bool RegisterRawInputDevices(RAWINPUTDEVICE pRawInputDevices, uint uiNumDevices, uint cbSize);
@@ -60,16 +49,10 @@ public class WinApi
     public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
     [DllImport("user32.dll")]
-    static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
     [DllImport("user32.dll")]
     public static extern bool ReleaseCapture();
-
-
-
-
-
-
 
     [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]
     private static extern bool NativeGetKeyboardState([Out] byte[] keyStates);
@@ -100,6 +83,7 @@ public class WinApi
 
     [DllImport("user32.dll")]
     public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
+
     [DllImport("user32.dll")]
     public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
@@ -113,6 +97,7 @@ public class WinApi
         public Int32 X;
         public Int32 Y;
     };
+
     //public static Point GetMousePosition()
     //{
     //    var w32Mouse = new Win32Point();
@@ -121,20 +106,14 @@ public class WinApi
     //    return new Point(w32Mouse.X, w32Mouse.Y);
     //}
 
-
     [DllImport("user32.dll")]
-
     public static extern bool DestroyIcon(IntPtr handle);
 
-
     [DllImport("gdi32.dll")]
-
     public static extern bool DeleteObject(IntPtr hObject);
-
 
     [DllImport("user32.dll")]
     public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
-
 
     [StructLayout(LayoutKind.Sequential)]
     public struct LASTINPUTINFO
@@ -143,6 +122,7 @@ public class WinApi
 
         [MarshalAs(UnmanagedType.U4)]
         public UInt32 cbSize;
+
         [MarshalAs(UnmanagedType.U4)]
         public UInt32 dwTime;
     }
