@@ -5,20 +5,27 @@ using System.ComponentModel;
 public class ArtistModel : INotifyPropertyChanged
 {
 
-    ArtistState _currentArtistState;
-    public ArtistState ArtistState { get => _currentArtistState; set => _currentArtistState = value; }
-    public bool ArtistActive
+    string _currentArtistState;
+    public string ArtistState
     {
-        get
+        get => _currentArtistState; set
         {
-            return ArtistState == ArtistState.ACTIVE;
-        }
-        set
-        {
-            ArtistState = value ? ArtistState.ACTIVE : ArtistState.INACTIVE;
+            _currentArtistState = value;
             OnPropertyChanged(nameof(ArtistState));
         }
     }
+    //public bool ArtistActive
+    //{
+    //    get
+    //    {
+    //        return ArtistState.Equals("Active");
+    //    }
+    //    set
+    //    {
+
+    //        OnPropertyChanged(nameof(ArtistState));
+    //    }
+    //}todo remove
 
 
     TimeSpan _activeTime;
@@ -38,7 +45,7 @@ public class ArtistModel : INotifyPropertyChanged
     public ArtistModel(TimeSpan timespan)
     {
         ActiveTime = timespan;
-        ArtistState = ArtistState.INACTIVE;
+        ArtistState = "Active";
     }
 
 

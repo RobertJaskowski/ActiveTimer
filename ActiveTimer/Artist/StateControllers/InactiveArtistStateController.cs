@@ -11,27 +11,29 @@ namespace ActiveTimer.Artist.StateControllers
     {
         public InactiveArtistStateController(ActiveTimerViewModel mainVM) : base(mainVM)
         {
+            availableTransitionState = StateName;
+
         }
 
-        public override bool IsThisStateCurrentStateOfArtist()
-        {
-            return main.Artist.ArtistState == ArtistState.INACTIVE;
-        }
 
-        private bool TransitionAvailable => availableTransitionState != ArtistState.INACTIVE;
-        private ArtistState availableTransitionState = ArtistState.INACTIVE;
+        private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
 
-        public override bool IsTransitionAvailable(out ArtistState artistState)
+        public override string StateName => "Inactive";
+
+        private string availableTransitionState;
+
+        public override bool IsTransitionAvailable(out string artistState)
         {
-            artistState = ArtistState.INACTIVE;
+            artistState = StateName;
 
 
             if (main.InputReceivedThisTick)
             {
                 //main.ArtistActivate.Execute(null);
 
-                availableTransitionState = ArtistState.ACTIVE;
-                artistState = ArtistState.ACTIVE;
+                availableTransitionState = "Active";
+                artistState = "Active";
+
 
                 return true;
             }

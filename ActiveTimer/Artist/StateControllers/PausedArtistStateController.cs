@@ -11,21 +11,21 @@ namespace ActiveTimer.Artist.StateControllers
     {
         public PausedArtistStateController(ActiveTimerViewModel mainVM) : base(mainVM)
         {
-        }
-
-        public override bool IsThisStateCurrentStateOfArtist()
-        {
-            return main.Artist.ArtistState == ArtistState.PAUSED;
+            availableTransitionState = StateName;
         }
 
 
-        private bool TransitionAvailable => availableTransitionState != ArtistState.PAUSED;
-        private ArtistState availableTransitionState = ArtistState.PAUSED;
 
-        public override bool IsTransitionAvailable(out ArtistState availableState)
+        private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
+
+        public override string StateName => "Paused";
+
+        private string availableTransitionState;
+
+        public override bool IsTransitionAvailable(out string availableState)
         {
-            availableTransitionState = ArtistState.PAUSED;
-            availableState = ArtistState.PAUSED;
+            availableTransitionState = StateName;
+            availableState = StateName;
 
             if (!main.IsTimerPausedByUser() && main.InputReceivedThisTick)
             {
@@ -34,8 +34,8 @@ namespace ActiveTimer.Artist.StateControllers
                     if (main.IsTitleValidWindowTitleCapture(titlee))
                         if (Data.Settings.Blacklist.IsTitleAllowed(titlee, out BlacklistItem blacklistItem))
                         {
-                            availableTransitionState = ArtistState.RESUMED;
-                            availableState = ArtistState.RESUMED;
+                            availableTransitionState = "Resumed";
+                            availableState = "Resumed";
                             //main.ArtistResume.Execute(null);
                             return true;
                         }

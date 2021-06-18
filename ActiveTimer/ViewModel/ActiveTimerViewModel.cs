@@ -60,19 +60,19 @@ namespace ActiveTimer.ViewModel
             {
                 switch (Artist.ArtistState)
                 {
-                    case ArtistState.ACTIVE:
+                    case "Active":
                         _artistTimeString = value;
                         break;
 
-                    case ArtistState.INACTIVE:
+                    case "Inactive":
                         _artistTimeString = value;
                         break;
 
-                    case ArtistState.PAUSED:
+                    case "Paused":
                         _artistTimeString = "|| " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");
                         break;
 
-                    case ArtistState.RESUMED:
+                    case "Resumed":
                         _artistTimeString = "|> " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");
                         break;
                 }
@@ -129,11 +129,11 @@ namespace ActiveTimer.ViewModel
                        (object o) =>
                        {
 
-                           if (Artist.ArtistState == ArtistState.ACTIVE || Artist.ArtistState == ArtistState.INACTIVE)
+                           if (Artist.ArtistState == "Active"    || Artist.ArtistState == "Inactive")
                            {
                                ArtistPause.Execute("user");
                            }
-                           else if (Artist.ArtistState == ArtistState.PAUSED)
+                           else if (Artist.ArtistState == "Paused")
                            {
                                ArtistResume.Execute(null);
                            }
@@ -157,7 +157,7 @@ namespace ActiveTimer.ViewModel
                     _artistActivate = new RelayCommand(
                        (object o) =>
                        {
-                           Artist.ArtistState = ArtistState.ACTIVE;
+                           Artist.ArtistState = "Active";
 
 
                            if (Data.Settings.PlayChangeSound)
@@ -187,7 +187,7 @@ namespace ActiveTimer.ViewModel
                     _artistDeactivate = new RelayCommand(
                        (object o) =>
                        {
-                           Artist.ArtistState = ArtistState.INACTIVE;
+                           Artist.ArtistState = "Inactive";
 
 
                            ArtistTimeString = Artist.ActiveTime.ToString();
@@ -221,7 +221,7 @@ namespace ActiveTimer.ViewModel
                     _artistPause = new RelayCommand(
                        (object o) =>
                        {
-                           Artist.ArtistState = ArtistState.PAUSED;
+                           Artist.ArtistState = "Paused";
 
                            if (o is string)
                                TimeReason = (string)o;
@@ -252,7 +252,7 @@ namespace ActiveTimer.ViewModel
                     _artistResume = new RelayCommand(
                        (object o) =>
                        {
-                           Artist.ArtistState = ArtistState.RESUMED;
+                           Artist.ArtistState = "Resumed";
                            if (o is string)
                                TimeReason = "";
 
@@ -399,7 +399,7 @@ namespace ActiveTimer.ViewModel
 
 
             IsTransitionCheckedThisTick = true;
-            if (currentTickStateController.IsTransitionAvailable(out ArtistState artistState))
+            if (currentTickStateController.IsTransitionAvailable(out string artistState))
             {
                 IsTransitionAvailableThisTick = true;
                 IsTransitionHappenedThisTick = true;
@@ -435,7 +435,7 @@ namespace ActiveTimer.ViewModel
 
         private ArtistStateController GetCurrentStateController()
         {
-            return stateControllers.First((sc) => sc.IsThisStateCurrentStateOfArtist());
+            return stateControllers.First((sc) => sc.IsSameStateByName(Artist.ArtistState));
         }
 
 
@@ -463,7 +463,7 @@ namespace ActiveTimer.ViewModel
             if (!IsTransitionCheckedThisTick)
             {
                 IsTransitionCheckedThisTick = true;
-                if (currentTickStateController.IsTransitionAvailable(out ArtistState artistState))
+                if (currentTickStateController.IsTransitionAvailable(out string artistState))
                 {
                     IsTransitionAvailableThisTick = true;
                 }

@@ -11,24 +11,23 @@ namespace ActiveTimer.Artist.StateControllers
     {
         public ActiveArtistStateController(ActiveTimerViewModel mainVM) : base(mainVM)
         {
+            availableTransitionState = StateName;
         }
 
 
-        public override bool IsThisStateCurrentStateOfArtist()
-        {
-            return main.Artist.ArtistState == ArtistState.ACTIVE;
-        }
+        private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
 
-        private bool TransitionAvailable => availableTransitionState != ArtistState.ACTIVE;
+        public override string StateName => "Active";
+
+
         private BlacklistItem transitionBlacklistItem;
-        private ArtistState availableTransitionState = ArtistState.ACTIVE;
+        private string availableTransitionState;
 
 
-        public override bool IsTransitionAvailable(out ArtistState artistState)
+        public override bool IsTransitionAvailable(out string nextTransitionStateAvailable)
         {
             transitionBlacklistItem = null;
-            availableTransitionState = ArtistState.ACTIVE;
-            artistState = ArtistState.ACTIVE;
+            nextTransitionStateAvailable = "";
 
             string title = main.CurrentWindowTitle;
             if (!main.IsTitleSameTitleAsPrevious(title))
@@ -36,8 +35,8 @@ namespace ActiveTimer.Artist.StateControllers
                     if (!Data.Settings.Blacklist.IsTitleAllowed(title, out BlacklistItem blacklistItemOnFalse))
                     {
                         transitionBlacklistItem = blacklistItemOnFalse;
-                        availableTransitionState = ArtistState.PAUSED;
-                        artistState = ArtistState.PAUSED;
+                        availableTransitionState = "Paused";
+                        nextTransitionStateAvailable = "Paused";
 
                         //main.ArtistPause.Execute(blacklistItem.Rule);
                         return true;
@@ -54,8 +53,8 @@ namespace ActiveTimer.Artist.StateControllers
                     main.currentCheckingAfkTime = 0;
 
                     transitionBlacklistItem = null;
-                    availableTransitionState = ArtistState.INACTIVE;
-                    artistState = ArtistState.INACTIVE;
+                    availableTransitionState = "Inactive";
+                    nextTransitionStateAvailable =  "Inactive";
 
                     //main.ArtistDeactivate.Execute(null);
                     return true;
@@ -69,11 +68,11 @@ namespace ActiveTimer.Artist.StateControllers
         {
             switch (availableTransitionState)
             {
-                case ArtistState.PAUSED:
+                case "Paused":
                     main.ArtistPause.Execute(transitionBlacklistItem.Rule);
 
                     break;
-                case ArtistState.INACTIVE:
+                case "Inactive":
                     main.ArtistDeactivate.Execute(null);
 
                     break;
