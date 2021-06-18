@@ -15,9 +15,16 @@ public abstract class ArtistStateController
     {
         main = mainVM;
     }
+    public abstract void OnEnter(object o);
+
     public abstract bool IsTransitionAvailable(out string artistState);
     public abstract void TransitionToNextState();
     public abstract void Tick();
+
+    public abstract void OnTimeClicked();
+    public abstract string GetTimerText();
+
+
 
     public bool IsSameStateByName(string other)
     {

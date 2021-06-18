@@ -14,6 +14,19 @@ namespace ActiveTimer.Artist.StateControllers
             availableTransitionState = StateName;
         }
 
+        public override void OnEnter(object o)
+        {
+            main.Artist.ArtistState = "Paused";
+
+            if (o is string)
+                main.TimeReason = (string)o;
+
+
+
+            main._host.SendMessage("MainBar", "color|||" + "221|||44|||0");
+
+            main._host.SendMessage("ActiveTimer", "IsNotActive");
+        }
 
 
         private bool TransitionAvailable => !IsSameStateByName(availableTransitionState);
@@ -45,11 +58,26 @@ namespace ActiveTimer.Artist.StateControllers
 
         public override void TransitionToNextState()
         {
-            main.ArtistResume.Execute(null);
+            main.ChangeState(typeof(ResumedArtistStateController));
         }
 
         public override void Tick()
         {
+
+        }
+
+        public override string GetTimerText()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("|| ").Append(main.Artist.ActiveTime.ToString());
+            if (!string.IsNullOrEmpty(main.TimeReason))
+                sb.Append(" by ").Append(main.TimeReason);
+            return sb.ToString();
+        }
+
+        public override void OnTimeClicked()
+        {
+            main.ChangeState(typeof(ResumedArtistStateController));
 
         }
     }

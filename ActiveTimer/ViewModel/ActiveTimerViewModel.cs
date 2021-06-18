@@ -2,6 +2,7 @@
 using ActiveTimer.Artist.StateControllers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -22,7 +23,6 @@ namespace ActiveTimer.ViewModel
         #region Properties
 
         public readonly int maxSecAfkTime = 2;
-        public int currentCheckingAfkTime = 0;
 
         private ArtistModel _artistModel;
 
@@ -48,250 +48,25 @@ namespace ActiveTimer.ViewModel
             }
         }
 
-        private string _artistTimeString;
-
-        public String ArtistTimeString
-        {
-            get
-            {
-                return _artistTimeString;
-            }
-            set
-            {
-                switch (Artist.ArtistState)
-                {
-                    case "Active":
-                        _artistTimeString = value;
-                        break;
-
-                    case "Inactive":
-                        _artistTimeString = value;
-                        break;
-
-                    case "Paused":
-                        _artistTimeString = "|| " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");
-                        break;
-
-                    case "Resumed":
-                        _artistTimeString = "|> " + value + (!string.IsNullOrEmpty(TimeReason) ? " by " + TimeReason : "");
-                        break;
-                }
-                OnPropertyChanged(nameof(ArtistTimeString));
-            }
-        }
+        public String ArtistTimeString => currentTickStateController.GetTimerText().ToString();
 
         private Visibility _resetButtonVisible;
 
         public Visibility ResetButtonVisible
         {
-            get { return _resetButtonVisible; }
-            set { _resetButtonVisible = value; OnPropertyChanged(nameof(ResetButtonVisible)); }
+            get => _resetButtonVisible;
+            set
+            {
+                _resetButtonVisible = value;
+                OnPropertyChanged(nameof(ResetButtonVisible));
+            }
         }
 
         #endregion Properties
 
         #region Commands
-
-        private ICommand _activeTimeUpdate;
-
-        public ICommand ActiveTimeUpdate1Sec
-        {
-            get
-            {
-                if (_activeTimeUpdate == null)
-
-                    _activeTimeUpdate = new RelayCommand(
-                       (object o) =>
-                       {
-                           Artist.ActiveTime += TimeSpan.FromSeconds(1);
-
-                           ArtistTimeString = Artist.ActiveTime.ToString();
-
-                           _host.OnEventTriggered(_core.ModuleName, "TimeUpdate", Artist.ActiveTime);
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _activeTimeUpdate;
-            }
-        }
-
-        private ICommand _activeTimeClicked;
-
-        public ICommand ActiveTimeClicked
-        {
-            get
-            {
-                if (_activeTimeClicked == null)
-                    _activeTimeClicked = new RelayCommand(
-                       (object o) =>
-                       {
-
-                           if (Artist.ArtistState == "Active"    || Artist.ArtistState == "Inactive")
-                           {
-                               ArtistPause.Execute("user");
-                           }
-                           else if (Artist.ArtistState == "Paused")
-                           {
-                               ArtistResume.Execute(null);
-                           }
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _activeTimeClicked;
-            }
-        }
-
-        private ICommand _artistActivate;
-
-        public ICommand ArtistActivate
-        {
-            get
-            {
-                if (_artistActivate == null)
-                    _artistActivate = new RelayCommand(
-                       (object o) =>
-                       {
-                           Artist.ArtistState = "Active";
-
-
-                           if (Data.Settings.PlayChangeSound)
-                           {
-                               PlaySound("Rise02.wav");
-                           }
-
-                           _host.SendMessage("MainBar", "color|||" + "178|||255|||89");
-                           _host.SendMessage("ActiveTimer", "IsActive");
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _artistActivate;
-            }
-        }
-
-        private ICommand _artistDeactivate;
-
-        public ICommand ArtistDeactivate
-        {
-            get
-            {
-                if (_artistDeactivate == null)
-                    _artistDeactivate = new RelayCommand(
-                       (object o) =>
-                       {
-                           Artist.ArtistState = "Inactive";
-
-
-                           ArtistTimeString = Artist.ActiveTime.ToString();
-
-                           if (Data.Settings.PlayChangeSound)
-                           {
-                               PlaySound("ring.wav");
-                           }
-
-                           //Color c = Color.FromArgb(255, 221, 44, 0);
-                           // MainBarModule.SetBarColor(c);
-                           _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
-                           _host.SendMessage("ActiveTimer", "IsNotActive");
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _artistDeactivate;
-            }
-        }
-
-        private ICommand _artistPause;
-
-        public ICommand ArtistPause
-        {
-            get
-            {
-                if (_artistPause == null)
-                    _artistPause = new RelayCommand(
-                       (object o) =>
-                       {
-                           Artist.ArtistState = "Paused";
-
-                           if (o is string)
-                               TimeReason = (string)o;
-
-                           ArtistTimeString = Artist.ActiveTime.ToString();
-
-
-                           _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
-
-                           _host.SendMessage("ActiveTimer", "IsNotActive");
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _artistPause;
-            }
-        }
-
-        private ICommand _artistResume;
-
-        public ICommand ArtistResume
-        {
-            get
-            {
-                if (_artistResume == null)
-                    _artistResume = new RelayCommand(
-                       (object o) =>
-                       {
-                           Artist.ArtistState = "Resumed";
-                           if (o is string)
-                               TimeReason = "";
-
-                           ArtistTimeString = Artist.ActiveTime.ToString();
-
-                           _host.SendMessage("MainBar", "color|||" + "221|||44|||0");
-
-                           _host.SendMessage("ActiveTimer", "IsActive");
-
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _artistResume;
-            }
-        }
-
-        private ICommand _resetButton;
-
-        public ICommand ResetButton
-        {
-            get
-            {
-                if (_resetButton == null)
-                    _resetButton = new RelayCommand(
-                       (object o) =>
-                       {
-                           Artist.ActiveTime = TimeSpan.FromSeconds(0);
-                       },
-                       (object o) =>
-                       {
-                           return true;
-                       });
-
-                return _resetButton;
-            }
-        }
+        public ICommand ActiveTimeClicked { get; }
+        public ICommand ResetButton { get; }
 
         #endregion Commands
 
@@ -302,10 +77,19 @@ namespace ActiveTimer.ViewModel
 
         public ActiveTimerViewModel(IModuleController host, ICoreModule activeTimer)
         {
+
             _host = host;
             _core = activeTimer;
 
+
             _artistModel = new ArtistModel(TimeSpan.FromSeconds(0));
+
+
+
+            ActiveTimeClicked = new RelayCommand((e) => currentTickStateController.OnTimeClicked());
+            ResetButton = new RelayCommand((e) => Artist.ActiveTime = TimeSpan.FromSeconds(0));
+
+
 
             CreateArtistStateTimers();
 
@@ -324,8 +108,49 @@ namespace ActiveTimer.ViewModel
                 new PausedArtistStateController(this)
             };
 
+            Artist.PropertyChanged += OnArtistPropertyChanged;
 
-            ArtistActivate?.Execute(null);
+            currentTickStateController = GetStateController("Active");
+        }
+
+
+        public void UpdateActiveTime(int second = 1)
+        {
+            Artist.ActiveTime += TimeSpan.FromSeconds(second);
+            _host.OnEventTriggered(_core.ModuleName, "TimeUpdate", Artist.ActiveTime);
+        }
+
+        public void ChangeState(Type toType, object data = null)
+        {
+            var s = GetStateController(toType);
+            ChangeState(s, data);
+        }
+
+        public void ChangeState(string stateName, object data = null)
+        {
+
+            var s = GetStateController(stateName);
+            ChangeState(s, data);
+        }
+
+
+        private void ChangeState(ArtistStateController toState, object data = null)
+        {
+            currentTickStateController = toState;
+            currentTickStateController.OnEnter(data);
+        }
+        public ArtistStateController GetStateController(Type type)
+        {
+            return stateControllers?.Find((e) => e.GetType() == type);
+        }
+        public ArtistStateController GetStateController(string name)
+        {
+            return stateControllers?.Find((e) => e.IsSameStateByName(name));
+        }
+
+        private void OnArtistPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(ArtistTimeString));
         }
 
         private void OnSettingsChanged()
@@ -343,7 +168,7 @@ namespace ActiveTimer.ViewModel
             ResetButtonVisible = Visibility.Visible;
         }
 
-        private void PlaySound(string soundName)
+        public void PlaySound(string soundName)
         {
             if (!File.Exists("Modules/ActiveTimer/Resources/" + soundName)) return;
 
@@ -432,6 +257,7 @@ namespace ActiveTimer.ViewModel
         private bool IsTransitionHappenedThisTick;
         private bool IsTransitionAvailableThisTick;
 
+        public int currentCheckingAfkTime = 0;
 
         private ArtistStateController GetCurrentStateController()
         {
@@ -486,7 +312,17 @@ namespace ActiveTimer.ViewModel
 
             prevTickStateController = currentTickStateController;
 
+            RefreshTimeView();
         }
+
+        private void RefreshTimeView()
+        {
+            OnPropertyChanged(nameof(ArtistTimeString));
+        }
+
+
+        public float topPercentFilled = 0;
+        public int timeSecToFillTopBar = 0;
 
         public bool InputReceivedThisTick = false;
         public uint lastActive = 0;
@@ -509,12 +345,6 @@ namespace ActiveTimer.ViewModel
 
             return false;
         }
-
-        public float topPercentFilled = 0;
-        public int timeSecToFillTopBar = 0;
-
-
-
 
         public void Stop()
         {

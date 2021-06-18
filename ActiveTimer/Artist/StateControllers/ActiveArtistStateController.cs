@@ -54,7 +54,7 @@ namespace ActiveTimer.Artist.StateControllers
 
                     transitionBlacklistItem = null;
                     availableTransitionState = "Inactive";
-                    nextTransitionStateAvailable =  "Inactive";
+                    nextTransitionStateAvailable = "Inactive";
 
                     //main.ArtistDeactivate.Execute(null);
                     return true;
@@ -66,27 +66,15 @@ namespace ActiveTimer.Artist.StateControllers
         }
         public override void TransitionToNextState()
         {
-            switch (availableTransitionState)
-            {
-                case "Paused":
-                    main.ArtistPause.Execute(transitionBlacklistItem.Rule);
 
-                    break;
-                case "Inactive":
-                    main.ArtistDeactivate.Execute(null);
+            main.ChangeState(availableTransitionState, transitionBlacklistItem.Rule);
 
-                    break;
-            }
         }
 
 
         public override void Tick()
         {
-
-
-
-
-            main.ActiveTimeUpdate1Sec.Execute(null);
+            main.UpdateActiveTime(1);
 
 
             if (main.timeSecToFillTopBar == 0)
@@ -96,6 +84,32 @@ namespace ActiveTimer.Artist.StateControllers
             main.topPercentFilled = Utils.ToProcentage(rest, 0, main.timeSecToFillTopBar);
 
             main._host.SendMessage("MainBar", "value|||" + main.topPercentFilled);
+        }
+
+        public override void OnEnter(object o)
+        {
+            main.Artist.ArtistState = "Active";
+
+
+            if (Data.Settings.PlayChangeSound)
+            {
+                main.PlaySound("Rise02.wav");
+            }
+
+            main._host.SendMessage("MainBar", "color|||" + "178|||255|||89");
+            main._host.SendMessage("ActiveTimer", "IsActive");
+        }
+
+        public override string GetTimerText()
+        {
+            return main.Artist.ActiveTime.ToString();
+
+        }
+
+        public override void OnTimeClicked()
+        {
+            main.ChangeState(typeof(PausedArtistStateController), "user");
+
         }
     }
 }

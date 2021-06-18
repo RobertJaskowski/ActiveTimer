@@ -42,15 +42,42 @@ namespace ActiveTimer.Artist.StateControllers
 
         public override void TransitionToNextState()
         {
-            main.ArtistActivate.Execute(null);
+            main.ChangeState("Active");
         }
 
         public override void Tick()
         {
-            if (main.InputReceivedThisTick)
+
+        }
+
+        public override void OnEnter(object o)
+        {
+            main.Artist.ArtistState = "Inactive";
+
+
+
+            if (Data.Settings.PlayChangeSound)
             {
-                main.ArtistActivate.Execute(null);
+                main.PlaySound("ring.wav");
             }
+
+            //Color c = Color.FromArgb(255, 221, 44, 0);
+            // MainBarModule.SetBarColor(c);
+            main._host.SendMessage("MainBar", "color|||" + "221|||44|||0");
+            main._host.SendMessage("ActiveTimer", "IsNotActive");
+        }
+
+
+        public override string GetTimerText()
+        {
+            return main.Artist.ActiveTime.ToString();
+
+        }
+
+        public override void OnTimeClicked()
+        {
+           main.ChangeState(typeof(PausedArtistStateController), "user");
+
         }
     }
 }
