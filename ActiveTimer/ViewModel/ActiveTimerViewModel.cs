@@ -89,7 +89,7 @@ namespace ActiveTimer.ViewModel
             ActiveTimer.OnMinViewEnteredEvent += OnMinViewEntered;
             ActiveTimer.OnFullViewEnteredEvent += OnFullViewEntered;
 
-            Data.OnSettingsChanged += OnSettingsChanged;
+
 
             stateControllers = new List<ArtistStateController>
             {
@@ -126,6 +126,9 @@ namespace ActiveTimer.ViewModel
         {
             currentTickStateController = toState;
             currentTickStateController.OnEnter(data);
+
+            RefreshTimeView();
+
         }
 
         public ArtistStateController GetStateController(Type type)
@@ -143,10 +146,6 @@ namespace ActiveTimer.ViewModel
             OnPropertyChanged(nameof(ArtistTimeString));
         }
 
-        private void OnSettingsChanged()
-        {
-            Data.Settings.Blacklist.BlacklistSplitItemsRequireRefreshing = true;
-        }
 
         private void OnMinViewEntered()
         {
@@ -319,7 +318,7 @@ namespace ActiveTimer.ViewModel
         public void Stop()
         {
             _host.UnHookWindowSwitchEvent(WindowSwitched);
-            Data.OnSettingsChanged -= OnSettingsChanged;
+
         }
 
         public bool IsCurrentActiveWindowTargetableValidWindow()
