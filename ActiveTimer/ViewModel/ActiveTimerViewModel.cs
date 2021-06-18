@@ -386,14 +386,28 @@ namespace ActiveTimer.ViewModel
             //    }
 
         }
-
-        public void OnNewTitleCaptured(string title)
+        public void OnTitleCaptured(string title)
         {
             CurrentWindowTitle = title;
 
+            if (!IsTitleSameTitleAsPrevious(title))
+                OnNewTitleCaptured(title);
+        }
 
+        public void OnNewTitleCaptured(string title)
+        {
+
+
+            IsTransitionCheckedThisTick = true;
             if (currentTickStateController.IsTransitionAvailable(out ArtistState artistState))
+            {
+                IsTransitionAvailableThisTick = true;
+                IsTransitionHappenedThisTick = true;
                 currentTickStateController.TransitionToNextState();
+            }
+            else
+                IsTransitionAvailableThisTick = false;
+
 
 
             PreviousWindowTitle = CurrentWindowTitle;
@@ -413,21 +427,30 @@ namespace ActiveTimer.ViewModel
 
         ArtistStateController prevTickStateController;
         ArtistStateController currentTickStateController;
-        private bool IsTransitionAvailable;
+        private bool IsControllerTickedThisTick;
+        private bool IsTransitionCheckedThisTick;
+        private bool IsTransitionHappenedThisTick;
+        private bool IsTransitionAvailableThisTick;
+
 
         private ArtistStateController GetCurrentStateController()
         {
             return stateControllers.First((sc) => sc.IsThisStateCurrentStateOfArtist());
         }
 
-        
+
 
         private void TimerTick(object sender, EventArgs e)
         {
+
+            IsControllerTickedThisTick = false;
+            IsTransitionCheckedThisTick = false;
+            IsTransitionHappenedThisTick = false;
             InputReceivedThisTick = false;
             CheckAndSetForInputReceived();
 
             currentTickStateController = GetCurrentStateController();
+
 
 
             var tempTitle = GetWindowTitle().ToString().ToLowerInvariant();
@@ -435,12 +458,31 @@ namespace ActiveTimer.ViewModel
 
 
             if (IsTitleValidWindowTitleCapture(tempTitle))
-                OnNewTitleCaptured(tempTitle);
+                OnTitleCaptured(tempTitle);
+
+            if (!IsTransitionCheckedThisTick)
+            {
+                IsTransitionCheckedThisTick = true;
+                if (currentTickStateController.IsTransitionAvailable(out ArtistState artistState))
+                {
+                    IsTransitionAvailableThisTick = true;
+                }
+                else
+                    IsTransitionAvailableThisTick = false;
+            }
 
 
+            if (!IsTransitionHappenedThisTick && IsTransitionAvailableThisTick)
+            {
+                IsTransitionHappenedThisTick = true;
+                currentTickStateController.TransitionToNextState();
+            }
 
-
-            currentTickStateController.Tick();
+            if (!IsControllerTickedThisTick && !IsTransitionHappenedThisTick)
+            {
+                IsControllerTickedThisTick = true;
+                currentTickStateController.Tick();
+            }
 
             prevTickStateController = currentTickStateController;
 
@@ -548,7 +590,7 @@ namespace ActiveTimer.ViewModel
 
         private bool IsTitleException(string title)
         {
-            return title.Contains("task switching");
+            return title.Contains("task switching") || title.Contains("search");
         }
     }
 }
