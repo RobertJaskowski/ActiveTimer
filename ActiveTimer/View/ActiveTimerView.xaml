@@ -1,23 +1,21 @@
 ﻿<UserControl x:Class="ActiveTimer.View.ActiveTimerView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:ActiveTimer.View"
              xmlns:vm="clr-namespace:ActiveTimer.ViewModel"
-             mc:Ignorable="d" 
-                         
-             >
-    
+             mc:Ignorable="d">
+
     <!--<UserControl.DataContext>
         <vm:ActiveTimerViewModel />
     </UserControl.DataContext>-->
     <StackPanel Orientation="Horizontal">
-        <Label Name="label3" Content="{Binding ArtistTimeString ,Mode=OneWay, FallbackValue='00:00:00'}"  FontWeight="Bold" MinWidth="200" FontSize="13" Margin="0,2,0,0" MinHeight="20" MaxHeight="20" Padding="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" >
+        <Label Name="label3" Content="{Binding ArtistTimeString ,Mode=OneWay, FallbackValue='00:00:00'}"  FontWeight="Bold" MinWidth="200" FontSize="13" Margin="0,2,0,0" MinHeight="20" MaxHeight="20" Padding="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center">
             <Label.InputBindings>
                 <MouseBinding Command="{Binding ActiveTimeClicked}" MouseAction="LeftClick" />
             </Label.InputBindings>
         </Label>
-        <Button Content="Reset" Command="{Binding ResetButton}" Visibility="{Binding ResetButtonVisible}"/>
+        <Button Content="Reset" Command="{Binding ResetButton}" Visibility="{Binding ResetButtonVisible}" />
     </StackPanel>
 </UserControl>

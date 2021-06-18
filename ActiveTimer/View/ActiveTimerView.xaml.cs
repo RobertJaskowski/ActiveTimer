@@ -10,8 +10,6 @@ namespace ActiveTimer.View
         public ActiveTimerView()
         {
             InitializeComponent();
-
-
         }
     }
 }
