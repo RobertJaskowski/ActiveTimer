@@ -13,7 +13,7 @@ namespace ActiveTimer.Artist.StateControllers
 
         public override string StateName => "Active";
 
-        private BlacklistItem transitionBlacklistItem;
+        private BlacklistItem? transitionBlacklistItem;
         private string availableTransitionState;
 
         public override bool IsTransitionAvailable(out string nextTransitionStateAvailable)
@@ -58,7 +58,15 @@ namespace ActiveTimer.Artist.StateControllers
 
         public override void TransitionToNextState()
         {
-            main.ChangeState(availableTransitionState, transitionBlacklistItem.Rule);
+            if (transitionBlacklistItem != null)
+            {
+                if (transitionBlacklistItem.Rule != null)
+                    main.ChangeState(availableTransitionState, transitionBlacklistItem.Rule);
+            }
+            else
+            {
+                main.ChangeState(availableTransitionState, null);
+            }
         }
 
         public override void Tick()

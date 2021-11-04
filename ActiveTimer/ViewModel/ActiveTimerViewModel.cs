@@ -1,4 +1,5 @@
 ﻿using ActiveTimer.Artist.StateControllers;
+using Caravansary.SDK;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,12 +11,28 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using static WinApi;
+using static ActiveTimer.WinApi;
 
 namespace ActiveTimer.ViewModel
 {
-    public class ActiveTimerViewModel : ObservableObject
+    public class ActiveTimerViewModel
     {
+        #region INotifyPropertyChanged Members;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion INotifyPropertyChanged Members;
+
         #region Properties
 
         public readonly int maxSecAfkTime = 2;
@@ -89,8 +106,6 @@ namespace ActiveTimer.ViewModel
             ActiveTimer.OnMinViewEnteredEvent += OnMinViewEntered;
             ActiveTimer.OnFullViewEnteredEvent += OnFullViewEntered;
 
-
-
             stateControllers = new List<ArtistStateController>
             {
                 new ActiveArtistStateController(this),
@@ -128,7 +143,6 @@ namespace ActiveTimer.ViewModel
             currentTickStateController.OnEnter(data);
 
             RefreshTimeView();
-
         }
 
         public ArtistStateController GetStateController(Type type)
@@ -145,7 +159,6 @@ namespace ActiveTimer.ViewModel
         {
             OnPropertyChanged(nameof(ArtistTimeString));
         }
-
 
         private void OnMinViewEntered()
         {
@@ -252,7 +265,7 @@ namespace ActiveTimer.ViewModel
 
             currentTickStateController = GetCurrentStateController();
 
-            var tempTitle = GetWindowTitle().ToString().ToLowerInvariant();
+            var tempTitle = WinApi.GetWindowTitle().ToString().ToLowerInvariant();
 
             if (IsTitleValidWindowTitleCapture(tempTitle))
                 OnTitleCaptured(tempTitle);
@@ -318,7 +331,6 @@ namespace ActiveTimer.ViewModel
         public void Stop()
         {
             _host.UnHookWindowSwitchEvent(WindowSwitched);
-
         }
 
         public bool IsCurrentActiveWindowTargetableValidWindow()

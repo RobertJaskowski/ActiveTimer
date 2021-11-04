@@ -1,11 +1,28 @@
 ﻿using Caravansary.SDK;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 
 namespace ActiveTimer.ViewModel
 {
-    public class ActiveTimerSettingsViewModel : PageModelBase
+    public class ActiveTimerSettingsViewModel
     {
+        #region INotifyPropertyChanged Members;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion INotifyPropertyChanged Members;
+
         #region Properties
 
         public bool CheckBoxBlacklistEnabled

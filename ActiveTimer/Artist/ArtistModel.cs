@@ -1,65 +1,68 @@
 ﻿using System;
 using System.ComponentModel;
 
-public class ArtistModel : INotifyPropertyChanged
+namespace ActiveTimer
 {
-    private string _currentArtistState;
-
-    public string ArtistState
+    public class ArtistModel : INotifyPropertyChanged
     {
-        get => _currentArtistState; set
+        private string _currentArtistState;
+
+        public string ArtistState
         {
-            _currentArtistState = value;
-            OnPropertyChanged(nameof(ArtistState));
+            get => _currentArtistState; set
+            {
+                _currentArtistState = value;
+                OnPropertyChanged(nameof(ArtistState));
+            }
         }
-    }
 
-    //public bool ArtistActive
-    //{
-    //    get
-    //    {
-    //        return ArtistState.Equals("Active");
-    //    }
-    //    set
-    //    {
-    //        OnPropertyChanged(nameof(ArtistState));
-    //    }
-    //}todo remove
+        //public bool ArtistActive
+        //{
+        //    get
+        //    {
+        //        return ArtistState.Equals("Active");
+        //    }
+        //    set
+        //    {
+        //        OnPropertyChanged(nameof(ArtistState));
+        //    }
+        //}todo remove
 
-    private TimeSpan _activeTime;
+        private TimeSpan _activeTime;
 
-    public TimeSpan ActiveTime
-    {
-        get
+        public TimeSpan ActiveTime
         {
-            return _activeTime;
+            get
+            {
+                return _activeTime;
+            }
+            set
+            {
+                _activeTime = value;
+                OnPropertyChanged(nameof(ActiveTime));
+            }
         }
-        set
+
+        public ArtistModel(TimeSpan timespan)
         {
-            _activeTime = value;
-            OnPropertyChanged(nameof(ActiveTime));
+            ActiveTime = timespan;
+            ArtistState = "Active";
         }
-    }
 
-    public ArtistModel(TimeSpan timespan)
-    {
-        ActiveTime = timespan;
-        ArtistState = "Active";
-    }
+        #region INotifyPropertyChanged Members;
 
-    #region INotifyPropertyChanged Members;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private void OnPropertyChanged(string propertyName)
-    {
-        PropertyChangedEventHandler handler = PropertyChanged;
-
-        if (handler != null)
+        private void OnPropertyChanged(string propertyName)
         {
-            handler(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
+            PropertyChangedEventHandler handler = PropertyChanged;
 
-    #endregion INotifyPropertyChanged Members;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion INotifyPropertyChanged Members;
+    }
 }

@@ -1,44 +1,47 @@
 ﻿using ActiveTimer.ViewModel;
 
-public abstract class ArtistStateController
+namespace ActiveTimer
 {
-    public abstract string StateName { get; }
-    protected ActiveTimerViewModel main;
-
-    public ArtistStateController(ActiveTimerViewModel mainVM)
+    public abstract class ArtistStateController
     {
-        main = mainVM;
-    }
+        public abstract string StateName { get; }
+        protected ActiveTimerViewModel main;
 
-    public abstract void OnEnter(object o);
+        public ArtistStateController(ActiveTimerViewModel mainVM)
+        {
+            main = mainVM;
+        }
 
-    public abstract bool IsTransitionAvailable(out string artistState);
+        public abstract void OnEnter(object o);
 
-    public abstract void TransitionToNextState();
+        public abstract bool IsTransitionAvailable(out string artistState);
 
-    public abstract void Tick();
+        public abstract void TransitionToNextState();
 
-    public abstract void OnTimeClicked();
+        public abstract void Tick();
 
-    public abstract string GetTimerText();
+        public abstract void OnTimeClicked();
 
-    public bool IsSameStateByName(string other)
-    {
-        if (other == null) return false;
+        public abstract string GetTimerText();
 
-        if (other.Equals(StateName))
-            return true;
+        public bool IsSameStateByName(string other)
+        {
+            if (other == null) return false;
 
-        return false;
-    }
+            if (other.Equals(StateName))
+                return true;
 
-    public bool IsSameStateByName(ArtistStateController other)
-    {
-        if (other == null) return false;
+            return false;
+        }
 
-        if (other.StateName.Equals(StateName))
-            return true;
+        public bool IsSameStateByName(ArtistStateController other)
+        {
+            if (other == null) return false;
 
-        return false;
+            if (other.StateName.Equals(StateName))
+                return true;
+
+            return false;
+        }
     }
 }

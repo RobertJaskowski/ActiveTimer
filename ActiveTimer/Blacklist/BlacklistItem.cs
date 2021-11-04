@@ -1,40 +1,43 @@
 ﻿using System;
 using System.ComponentModel;
 
-[Serializable]
-public class BlacklistItem : INotifyPropertyChanged
+namespace ActiveTimer
 {
-    private string _rule;
-
-    public string Rule
+    [Serializable]
+    public class BlacklistItem : INotifyPropertyChanged
     {
-        get
+        private string _rule;
+
+        public string Rule
         {
-            return _rule;
+            get
+            {
+                return _rule;
+            }
+            set
+            {
+                _rule = value;
+                OnPropertyChanged(nameof(Rule));
+            }
         }
-        set
+
+        public BlacklistItem()
+        { }
+
+        public BlacklistItem(string rule)
         {
-            _rule = value;
-            OnPropertyChanged(nameof(Rule));
+            Rule = rule;
         }
+
+        #region INotifyPropertyChanged Members;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion INotifyPropertyChanged Members;
     }
-
-    public BlacklistItem()
-    { }
-
-    public BlacklistItem(string rule)
-    {
-        Rule = rule;
-    }
-
-    #region INotifyPropertyChanged Members;
-
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    #endregion INotifyPropertyChanged Members;
 }
