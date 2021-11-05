@@ -15,7 +15,7 @@ using static ActiveTimer.WinApi;
 
 namespace ActiveTimer.ViewModel
 {
-    public class ActiveTimerViewModel
+    public class ActiveTimerViewModel : INotifyPropertyChanged
     {
         #region INotifyPropertyChanged Members;
 

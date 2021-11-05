@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ActiveTimer.ViewModel
 {
-    public class ActiveTimerSettingsViewModel
+    public class ActiveTimerSettingsViewModel : INotifyPropertyChanged
     {
         #region INotifyPropertyChanged Members;
 
